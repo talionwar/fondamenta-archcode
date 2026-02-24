@@ -120,43 +120,17 @@ export default defineConfig({
   schema: {
     provider: 'auto',        // 'prisma' | 'drizzle' | 'none'
   },
+  agents: {
+    license: 'FA-PRO-...',   // PRO license key (optional)
+    thresholds: {
+      maxLineCount: 500,      // Flag files exceeding this
+      maxDependencies: 20,    // Flag components with too many imports
+      maxPageImports: 15,     // Flag pages with heavy imports
+      maxApiCallsPerPage: 5,  // Flag pages calling too many APIs
+    },
+  },
 });
 ```
-
-## Frameworks Supported
-
-| Framework | Status |
-|-----------|--------|
-| Next.js App Router | ✅ Full support |
-| Next.js Pages Router | Partial (detection + data fetching + API handlers) |
-| Nuxt 3 | Partial (pages, composables, server API routes) |
-
-**Planned:** SvelteKit, Remix
-
-## How it works
-
-1. **Discovers** files using `fast-glob` (respects `.gitignore`)
-2. **Parses** TypeScript/TSX using the TypeScript Compiler API (not regex)
-3. **Builds** an in-memory graph of imports, exports, components, hooks
-4. **Classifies** each file: page, component, API route, lib, hook
-5. **Analyzes** Prisma schema for models, fields, and relations
-6. **Generates** structured Markdown with consistent formatting
-
-Zero runtime dependencies after analysis — output is plain Markdown.
-
-## vs Alternatives
-
-| | Fondamenta ArchCode | GitNexus | Repomix |
-|---|---|---|---|
-| **Output** | Structured .md files | Graph DB (KuzuDB) | Single concatenated file |
-| **Runtime deps** | None | KuzuDB + MCP server | None |
-| **AI integration** | Any tool (reads files) | Claude Code only (MCP) | Any tool |
-| **Framework-aware** | Yes (routes, pages, auth) | AST only | No |
-| **Schema-aware** | Yes (Prisma + Drizzle) | No | No |
-| **Code health agents** | Yes (8 agents) | No | No |
-| **Human-readable** | Excellent | Requires queries | Poor (wall of text) |
-| **Git-friendly** | Yes (meaningful diffs) | No (binary DB) | Poor (single file) |
-| **Incremental** | Yes (watch + diff) | Re-index | No |
 
 ## Commands
 
@@ -169,17 +143,30 @@ Zero runtime dependencies after analysis — output is plain Markdown.
 | `fondamenta ai-context [path]` | Generate AI context files |
 | `fondamenta init` | Create configuration file |
 
+### `fondamenta analyze`
+
+```bash
+fondamenta analyze                     # Current directory
+fondamenta analyze ./my-project        # Specific path
+fondamenta analyze --output .docs      # Custom output
+fondamenta analyze --framework nuxt    # Force framework
+fondamenta analyze --no-schema         # Skip ORM analysis
+fondamenta analyze --verbose           # Show detailed progress
+```
+
 ### `fondamenta agents`
 
 Run 8 code health agents (3 free, 5 PRO) that analyze your project graph and produce actionable findings.
 
 ```bash
-fondamenta agents              # All available agents
-fondamenta agents --free       # Free agents only
-fondamenta agents --agent dead-code  # Single agent
-fondamenta agents --ci         # Exit code 1 if errors found
-fondamenta agents --report     # Generate AGENTS-REPORT.md
-fondamenta agents --list       # List all agents with tier
+fondamenta agents                       # All available agents
+fondamenta agents --free                # Free agents only
+fondamenta agents --agent dead-code     # Single agent
+fondamenta agents --ci                  # Exit code 1 if errors found
+fondamenta agents --report              # Generate AGENTS-REPORT.md
+fondamenta agents --list                # List all agents with tier
+fondamenta agents --json                # JSON output for CI/CD pipelines
+fondamenta agents --framework nextjs-app  # Force framework
 ```
 
 **Free agents:**
@@ -198,21 +185,58 @@ fondamenta agents --list       # List all agents with tier
 | `convention-enforcer` | Naming, barrel exports, auth pattern consistency |
 | `impact-analyzer` | Fan-in/out hotspots, hub components, bridge files |
 
+#### JSON output
+
+The `--json` flag outputs structured JSON for CI/CD integration:
+
+```json
+{
+  "version": "0.3.0",
+  "timestamp": "2026-02-24T12:00:00.000Z",
+  "summary": {
+    "totalFindings": 5,
+    "errors": 1,
+    "warnings": 3,
+    "infos": 1,
+    "agentsRan": 3,
+    "agentsSkipped": 5,
+    "totalDurationMs": 245
+  },
+  "results": [
+    {
+      "agentId": "dead-code",
+      "tier": "free",
+      "skipped": false,
+      "durationMs": 82,
+      "findings": [...]
+    }
+  ]
+}
+```
+
 ### `fondamenta diff`
 
 ```bash
 fondamenta diff                # Show what changed
 fondamenta diff --ci           # Exit code 1 if outdated (for CI)
+fondamenta diff --agents       # Compare agent findings vs last report
 ```
+
+State is tracked in `.planning/.state.json` using MD5 file hashes. The diff computes added, modified, removed, and unchanged files since the last `analyze` run.
 
 ### `fondamenta watch`
 
 ```bash
-fondamenta watch               # Watch and regenerate on changes
-fondamenta watch --debounce 1000  # Custom debounce (ms)
+fondamenta watch                    # Watch and regenerate on changes
+fondamenta watch --debounce 1000    # Custom debounce (ms)
+fondamenta watch --agents           # Run agents after each regeneration
 ```
 
+Watches `.ts` and `.tsx` files using `chokidar`. Ignores `node_modules`, `.next`, `dist`, and `.planning`.
+
 ### `fondamenta ai-context`
+
+Generate context files for AI coding tools. Each file includes a project summary, key routes, DB models, and fragile zones (auth, layout, heavy models).
 
 ```bash
 fondamenta ai-context --claude    # Generate/update CLAUDE.md
@@ -220,6 +244,164 @@ fondamenta ai-context --cursor    # Generate .cursorrules
 fondamenta ai-context --copilot   # Generate .github/copilot-instructions.md
 fondamenta ai-context --all       # All of the above
 ```
+
+**What gets generated:**
+
+| Target | File | Contents |
+|--------|------|----------|
+| `--claude` | `CLAUDE.md` | Project structure, key routes, DB models, fragile zones |
+| `--cursor` | `.cursorrules` | Framework info, conventions, component split, auth patterns |
+| `--copilot` | `.github/copilot-instructions.md` | Project map table, DB model listing |
+
+If a `CLAUDE.md` already exists, fondamenta appends/replaces only the auto-generated section (marked with a header comment).
+
+## Frameworks Supported
+
+| Framework | Status | Auto-Detection |
+|-----------|--------|----------------|
+| Next.js App Router | Full support | `app/` dir + `next.config.*` |
+| Next.js Pages Router | Partial (detection, data fetching, API handlers) | `pages/` dir + `next.config.*` |
+| Nuxt 3 | Partial (pages, composables, server API routes) | `nuxt.config.*` |
+| SvelteKit | Detection only | `svelte.config.js` |
+| Remix | Detection only | `remix.config.js` or `app/root.tsx` |
+
+Detection uses confidence scoring (0-100%) with multiple signals: directory structure, config files, and `package.json` dependencies.
+
+## Schema / ORM Support
+
+| ORM | Parser | What it extracts |
+|-----|--------|-----------------|
+| **Prisma** | Regex-based (`schema.prisma`) | Models, fields, types, constraints (`@id`, `@unique`, `@default`, `@map`, `@updatedAt`), relations (`@relation`), enums |
+| **Drizzle** | TypeScript Compiler API | `pgTable()`, `mysqlTable()`, `sqliteTable()` definitions, field types, `pgEnum`/`mysqlEnum`, relations via second-pass resolution |
+| TypeORM | Planned | — |
+
+Set `schema.provider` in config to `'prisma'`, `'drizzle'`, `'auto'` (tries both), or `'none'`.
+
+## Vue / Nuxt SFC Support
+
+Fondamenta includes a dedicated Vue Single-File Component parser (`vue-parser.ts`) for Nuxt 3 projects:
+
+- Extracts `<script setup>` and `<script>` blocks, parses with TypeScript Compiler API
+- Detects composable usage (`useX()` patterns), `ref()`, `reactive()` state
+- Extracts API calls (`$fetch`, `useFetch`) and environment variables (`useRuntimeConfig()`)
+- Parses `<template>` for component usage (PascalCase and kebab-case)
+- Classifies files by Nuxt conventions: `pages/`, `components/`, `composables/`, `server/api/`, `utils/`
+- Tracks lifecycle hooks: `onMounted`, `onUnmounted`, `watch`, `watchEffect`
+
+## Programmatic API
+
+Use Fondamenta as a library in your own tools:
+
+```typescript
+import {
+  analyzeProject,
+  detectFramework,
+  parsePrismaSchema,
+  parseDrizzleSchema,
+  parseVueFile,
+  generateClaudeMd,
+  generateCursorRules,
+  generateCopilotInstructions,
+  saveState,
+  loadState,
+  computeDiff,
+  // Generators
+  generatePages,
+  generateComponents,
+  generateApiRoutes,
+  generateLib,
+  generateSchema,
+  generateComponentGraph,
+  generateDependencyMap,
+  // Agents
+  ALL_AGENTS,
+  runAgents,
+  listAgents,
+  getAgent,
+  validateLicense,
+  generateLicenseKey,
+  generateAgentsReport,
+  // Types
+  type ProjectGraph,
+  type PageInfo,
+  type ComponentInfo,
+  type ApiRouteInfo,
+  type LibInfo,
+  type SchemaModel,
+  type FondamentaConfig,
+  type AnalysisResult,
+  type Agent,
+  type AgentFinding,
+  type AgentsRunSummary,
+} from 'fondamenta-archcode';
+
+// Analyze a project
+const result = await analyzeProject('/path/to/project', config);
+console.log(result.graph.pages.length); // number of pages found
+
+// Run agents programmatically
+const summary = runAgents(result.graph, config, { freeOnly: true });
+console.log(summary.errors); // number of error-level findings
+
+// Detect framework
+const detection = await detectFramework('/path/to/project');
+console.log(detection.framework, detection.confidence);
+```
+
+## How it works
+
+1. **Discovers** files using `fast-glob` (respects `.gitignore`)
+2. **Parses** TypeScript/TSX/Vue SFC using the TypeScript Compiler API (not regex)
+3. **Builds** an in-memory graph of imports, exports, components, hooks
+4. **Classifies** each file: page, component, API route, lib, hook
+5. **Analyzes** ORM schema (Prisma via regex, Drizzle via TS Compiler API)
+6. **Generates** structured Markdown with consistent formatting
+7. **Saves** state (file hashes in `.state.json`) for incremental diff tracking
+
+All paths in the graph are stored as relative paths for portability across environments.
+
+Zero runtime dependencies after analysis — output is plain Markdown.
+
+## Licensing
+
+Fondamenta ArchCode uses an **Open Core** model:
+
+| Tier | Agents | Price |
+|------|--------|-------|
+| **Free** | `dead-code`, `circular-deps`, `architecture-guard` | Free forever |
+| **PRO** | All 8 agents + configurable thresholds | License required |
+
+PRO license keys are validated offline using HMAC signatures. Set your key in `fondamenta.config.ts`:
+
+```typescript
+export default defineConfig({
+  agents: {
+    license: 'FA-PRO-...',
+  },
+});
+```
+
+Or via environment variable:
+
+```bash
+FONDAMENTA_LICENSE=FA-PRO-... fondamenta agents
+```
+
+## vs Alternatives
+
+| | Fondamenta ArchCode | GitNexus | Repomix |
+|---|---|---|---|
+| **Output** | Structured .md files | Graph DB (KuzuDB) | Single concatenated file |
+| **Runtime deps** | None | KuzuDB + MCP server | None |
+| **AI integration** | Any tool (reads files) | Claude Code only (MCP) | Any tool |
+| **Framework-aware** | Yes (routes, pages, auth) | AST only | No |
+| **Schema-aware** | Yes (Prisma + Drizzle) | No | No |
+| **Vue/Nuxt support** | Yes (SFC parser) | No | No |
+| **Code health agents** | Yes (8 agents) | No | No |
+| **Human-readable** | Excellent | Requires queries | Poor (wall of text) |
+| **Git-friendly** | Yes (meaningful diffs) | No (binary DB) | Poor (single file) |
+| **Incremental** | Yes (watch + diff) | Re-index | No |
+| **Programmatic API** | Yes (full library export) | No | No |
 
 ## Automation
 
@@ -259,12 +441,23 @@ Or with custom options:
     path: './my-app'
 ```
 
+### CI/CD with JSON output
+
+```yaml
+- name: Run agents
+  run: npx fondamenta-archcode agents --free --json > agents-report.json
+
+- name: Check for errors
+  run: npx fondamenta-archcode agents --free --ci
+```
+
 ## Known Limitations
 
-- **Framework**: Next.js App Router fully supported. Pages Router and Nuxt 3 have partial support. SvelteKit and Remix planned.
+- **Framework**: Next.js App Router fully supported. Pages Router and Nuxt 3 have partial support. SvelteKit and Remix are detection-only.
 - **Schema**: Prisma and Drizzle ORM supported. TypeORM planned.
-- **Agent accuracy**: Dead code detection may flag Next.js convention files (layout.tsx, etc.) in edge cases. Use `--json` to filter results programmatically.
-- **Test coverage**: 111 tests (14 unit suites + 2 integration suites). Contributions welcome.
+- **Vue**: SFC parser handles `<script setup>` and `<script>` blocks. Complex `<script>` patterns (mixins, extends) may not be fully extracted.
+- **Agent accuracy**: Dead code detection skips Next.js convention files (`layout.tsx`, `loading.tsx`, etc.) and Nuxt auto-imports. Edge cases may still produce false positives — use `--json` to filter results programmatically.
+- **Test coverage**: 111 tests (14 unit suites + 2 integration suites).
 
 ## Roadmap
 
@@ -276,17 +469,21 @@ Or with custom options:
 - [x] `fondamenta diff` (show changes since last analysis)
 - [x] AI context generation (CLAUDE.md, .cursorrules, copilot instructions)
 - [x] Code health agents (8 agents: 3 free + 5 PRO)
-- [x] JSON output (--json) for CI/CD
+- [x] JSON output (`--json`) for CI/CD
 - [x] Configurable agent thresholds
 - [x] GitHub Action (CI + reusable action)
 - [x] Next.js Pages Router support (partial: detection, data fetching, API handlers)
 - [x] Test suite (111 tests: 14 unit + 2 integration)
 - [x] Drizzle schema support (pgTable, mysqlTable, sqliteTable, relations, enums)
 - [x] Nuxt 3 support (partial: pages, server/api, composables, auto-imports)
-- [x] Watch/Diff agents integration (--agents flag)
+- [x] Vue SFC parser (script setup, template component extraction)
+- [x] Watch/Diff agents integration (`--agents` flag)
+- [x] Programmatic API (full library export)
+- [x] Relative paths in graph nodes (portable output)
 - [ ] Next.js Pages Router full parity with App Router
-- [ ] SvelteKit support
-- [ ] Remix support
+- [ ] SvelteKit full support
+- [ ] Remix full support
+- [ ] TypeORM schema parser
 
 ## Contributing
 

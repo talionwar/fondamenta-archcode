@@ -1,0 +1,64 @@
+{
+  "name": "fondamenta",
+  "version": "0.1.0",
+  "description": "Zero-dependency codebase intelligence for AI agents. Static analysis → structured Markdown.",
+  "type": "module",
+  "bin": {
+    "fondamenta": "./dist/cli.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "codebase-analysis",
+    "ai-context",
+    "claude-code",
+    "cursor",
+    "copilot",
+    "static-analysis",
+    "dependency-graph",
+    "architecture",
+    "documentation",
+    "nextjs",
+    "typescript",
+    "fondamenta"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/talionwar/fondamenta.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
+    "ora": "^8.1.0",
+    "typescript": "^5.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.3.0",
+    "vitest": "^2.1.0"
+  }
+}

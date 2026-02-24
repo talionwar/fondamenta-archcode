@@ -1,8 +1,16 @@
 import type { Agent, AgentFinding } from '../types.js';
 import type { ProjectGraph, FondamentaConfig } from '../../types/index.js';
 
-const MAX_LINE_COUNT = 500;
-const MAX_DEPENDENCIES = 15;
+// Route patterns excluded from auth checks (webhooks, cron, health, auth endpoints, public APIs)
+const EXCLUDED_ROUTE_PATTERNS = [
+  'webhook',
+  'cron',
+  'health',
+  '/api/auth/',
+  'public',
+  'register',
+  'login',
+];
 
 export const architectureGuardAgent: Agent = {
   id: 'architecture-guard',
@@ -10,19 +18,21 @@ export const architectureGuardAgent: Agent = {
   description: 'Flags oversized files, god components, and mutation routes without auth checks',
   tier: 'free',
 
-  run(graph: ProjectGraph, _config: FondamentaConfig): AgentFinding[] {
+  run(graph: ProjectGraph, config: FondamentaConfig): AgentFinding[] {
+    const maxLineCount = config.agents?.thresholds?.maxLineCount ?? 500;
+    const maxDependencies = config.agents?.thresholds?.maxDependencies ?? 15;
     const findings: AgentFinding[] = [];
 
     // 1. Files too large (>500 lines)
     for (const [, node] of graph.nodes) {
       const lineCount = (node.metadata as Record<string, unknown>).lineCount as number | undefined;
-      if (lineCount && lineCount > MAX_LINE_COUNT) {
+      if (lineCount && lineCount > maxLineCount) {
         findings.push({
           agentId: 'architecture-guard',
           severity: 'warning',
           title: 'Oversized file',
           filePath: node.id,
-          message: `File has ${lineCount} lines (threshold: ${MAX_LINE_COUNT})`,
+          message: `File has ${lineCount} lines (threshold: ${maxLineCount})`,
           suggestion: 'Split into smaller, focused modules',
         });
       }
@@ -34,13 +44,13 @@ export const architectureGuardAgent: Agent = {
       if (!node) continue;
 
       const depCount = node.metadata.imports.length;
-      if (depCount > MAX_DEPENDENCIES) {
+      if (depCount > maxDependencies) {
         findings.push({
           agentId: 'architecture-guard',
           severity: 'warning',
           title: 'God component',
           filePath: comp.filePath,
-          message: `Component \`${comp.name}\` has ${depCount} imports (threshold: ${MAX_DEPENDENCIES})`,
+          message: `Component \`${comp.name}\` has ${depCount} imports (threshold: ${maxDependencies})`,
           suggestion: 'Extract sub-components or use composition pattern',
         });
       }
@@ -55,6 +65,12 @@ export const architectureGuardAgent: Agent = {
 
       const hasDbAccess = route.models.length > 0;
       if (!hasDbAccess) continue;
+
+      // Skip excluded route patterns (webhooks, cron, health, auth endpoints, public APIs)
+      const isExcluded = EXCLUDED_ROUTE_PATTERNS.some((pattern) =>
+        route.routePath.toLowerCase().includes(pattern),
+      );
+      if (isExcluded) continue;
 
       if (route.auth === 'None') {
         findings.push({

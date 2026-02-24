@@ -1,16 +1,15 @@
 import type { Agent, AgentFinding } from '../types.js';
 import type { ProjectGraph, FondamentaConfig } from '../../types/index.js';
 
-const MAX_PAGE_IMPORTS = 20;
-const MAX_API_CALLS_PER_PAGE = 5;
-
 export const performanceSentinelAgent: Agent = {
   id: 'performance-sentinel',
   name: 'Performance Sentinel',
   description: 'Detects heavy pages, unnecessary client components, and API call waterfalls',
   tier: 'pro',
 
-  run(graph: ProjectGraph, _config: FondamentaConfig): AgentFinding[] {
+  run(graph: ProjectGraph, config: FondamentaConfig): AgentFinding[] {
+    const maxPageImports = config.agents?.thresholds?.maxPageImports ?? 20;
+    const maxApiCallsPerPage = config.agents?.thresholds?.maxApiCallsPerPage ?? 5;
     const findings: AgentFinding[] = [];
 
     // 1. Pages with too many imports
@@ -19,13 +18,13 @@ export const performanceSentinelAgent: Agent = {
       if (!node) continue;
 
       const importCount = node.metadata.imports.length;
-      if (importCount > MAX_PAGE_IMPORTS) {
+      if (importCount > maxPageImports) {
         findings.push({
           agentId: 'performance-sentinel',
           severity: 'warning',
           title: 'Heavy page',
           filePath: page.filePath,
-          message: `Page \`${page.routePath}\` has ${importCount} imports (threshold: ${MAX_PAGE_IMPORTS})`,
+          message: `Page \`${page.routePath}\` has ${importCount} imports (threshold: ${maxPageImports})`,
           suggestion: 'Lazy-load non-critical components with dynamic() or React.lazy()',
         });
       }
@@ -55,13 +54,13 @@ export const performanceSentinelAgent: Agent = {
 
     // 3. Pages with multiple API calls (waterfall risk)
     for (const page of graph.pages) {
-      if (page.apiCalls.length > MAX_API_CALLS_PER_PAGE) {
+      if (page.apiCalls.length > maxApiCallsPerPage) {
         findings.push({
           agentId: 'performance-sentinel',
           severity: 'warning',
           title: 'API call waterfall risk',
           filePath: page.filePath,
-          message: `Page \`${page.routePath}\` makes ${page.apiCalls.length} API calls (threshold: ${MAX_API_CALLS_PER_PAGE})`,
+          message: `Page \`${page.routePath}\` makes ${page.apiCalls.length} API calls (threshold: ${maxApiCallsPerPage})`,
           suggestion: 'Consolidate API calls or use parallel fetching with Promise.all',
         });
       }

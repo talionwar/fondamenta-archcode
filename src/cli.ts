@@ -452,27 +452,33 @@ program
   .option('--ci', 'Exit with code 1 if errors are found')
   .option('--report', 'Generate AGENTS-REPORT.md in output directory')
   .option('--list', 'List all available agents')
+  .option('--json', 'Output results as JSON')
   .option('-f, --framework <name>', 'Force framework detection')
   .action(async (path: string, opts: Record<string, unknown>) => {
     const projectRoot = resolve(path);
     const outputDir = resolve(projectRoot, opts.output as string);
+    const jsonMode = opts.json as boolean;
 
-    printBanner();
+    if (!jsonMode) {
+      printBanner();
+    }
 
     // --list: just show agents and exit
     if (opts.list) {
-      console.log(chalk.dim('  Available agents:'));
-      console.log('');
-      for (const agent of ALL_AGENTS) {
-        const tierBadge = agent.tier === 'free'
-          ? chalk.green(' FREE ')
-          : chalk.yellow(' PRO  ');
-        console.log(`  ${tierBadge} ${chalk.bold(agent.id)}`);
-        console.log(chalk.dim(`         ${agent.description}`));
+      if (!jsonMode) {
+        console.log(chalk.dim('  Available agents:'));
+        console.log('');
+        for (const agent of ALL_AGENTS) {
+          const tierBadge = agent.tier === 'free'
+            ? chalk.green(' FREE ')
+            : chalk.yellow(' PRO  ');
+          console.log(`  ${tierBadge} ${chalk.bold(agent.id)}`);
+          console.log(chalk.dim(`         ${agent.description}`));
+        }
+        console.log('');
+        console.log(chalk.dim(`  ${ALL_AGENTS.filter(a => a.tier === 'free').length} free, ${ALL_AGENTS.filter(a => a.tier === 'pro').length} pro`));
+        console.log('');
       }
-      console.log('');
-      console.log(chalk.dim(`  ${ALL_AGENTS.filter(a => a.tier === 'free').length} free, ${ALL_AGENTS.filter(a => a.tier === 'pro').length} pro`));
-      console.log('');
       return;
     }
 
@@ -484,21 +490,60 @@ program
     const config = await loadConfig(projectRoot, opts);
 
     // Analyze the project
-    const spinnerAnalyze = ora('  Analyzing codebase...').start();
+    let startTime = Date.now();
+    const spinnerAnalyze = jsonMode ? null : ora('  Analyzing codebase...').start();
     const result = await analyzeProject(projectRoot, config);
-    spinnerAnalyze.succeed(
-      `  Analyzed ${chalk.cyan(String(result.totalFiles))} files in ${chalk.cyan(`${result.duration}ms`)}`,
-    );
+    if (spinnerAnalyze) {
+      spinnerAnalyze.succeed(
+        `  Analyzed ${chalk.cyan(String(result.totalFiles))} files in ${chalk.cyan(`${result.duration}ms`)}`,
+      );
+    }
 
     // Run agents
-    const spinnerAgents = ora('  Running agents...').start();
+    const agentStartTime = Date.now();
+    const spinnerAgents = jsonMode ? null : ora('  Running agents...').start();
 
     const agentOptions: { freeOnly?: boolean; agentIds?: string[] } = {};
     if (opts.free) agentOptions.freeOnly = true;
     if (opts.agent) agentOptions.agentIds = [opts.agent as string];
 
     const summary = runAgents(result.graph, config, agentOptions);
-    spinnerAgents.stop();
+    const agentDuration = Date.now() - agentStartTime;
+    if (spinnerAgents) {
+      spinnerAgents.stop();
+    }
+
+    // JSON output mode
+    if (jsonMode) {
+      const jsonOutput = {
+        version: VERSION,
+        timestamp: new Date().toISOString(),
+        summary: {
+          totalFindings: summary.results.reduce((sum, r) => sum + r.findings.length, 0),
+          errors: summary.errors,
+          warnings: summary.warnings,
+          infos: summary.infos,
+          agentsRan: summary.results.filter((r) => !r.skipped).length,
+          agentsSkipped: summary.results.filter((r) => r.skipped).length,
+          totalDurationMs: agentDuration,
+        },
+        results: summary.results.map((agentResult) => ({
+          agentId: agentResult.agentId,
+          tier: agentResult.tier,
+          skipped: agentResult.skipped,
+          skipReason: agentResult.skipReason,
+          durationMs: agentResult.durationMs,
+          findings: agentResult.findings,
+        })),
+      };
+      console.log(JSON.stringify(jsonOutput, null, 2));
+
+      // CI mode: exit with error if findings include errors
+      if (opts.ci && summary.errors > 0) {
+        process.exit(1);
+      }
+      return;
+    }
 
     console.log('');
 

@@ -207,6 +207,12 @@ export interface FondamentaConfig {
     enabled?: boolean;
     license?: string;
     exclude?: string[];
+    thresholds?: {
+      maxLineCount?: number;
+      maxDependencies?: number;
+      maxPageImports?: number;
+      maxApiCallsPerPage?: number;
+    };
   };
 }
 

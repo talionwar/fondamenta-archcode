@@ -28,9 +28,14 @@ export const deadCodeAgent: Agent = {
     // Check components with empty usedBy
     for (const comp of graph.components) {
       if (comp.usedBy.length === 0) {
-        // Skip if it's also a page (pages are entry points)
         const node = graph.nodes.get(comp.filePath);
-        if (node?.type === 'page') continue;
+
+        // Skip page entry points and hooks
+        if (node?.type === 'page' || node?.type === 'hook') continue;
+
+        // Skip Next.js implicit files (auto-imported by App Router)
+        const fileName = comp.filePath.split('/').pop() ?? '';
+        if (/^(layout|loading|error|not-found|template|default|global-error)\.(tsx|ts)$/.test(fileName)) continue;
 
         // Skip index/barrel files
         if (comp.filePath.endsWith('/index.ts') || comp.filePath.endsWith('/index.tsx')) continue;
@@ -49,10 +54,21 @@ export const deadCodeAgent: Agent = {
     // Check lib files with empty usedBy
     for (const lib of graph.libs) {
       if (lib.usedBy.length === 0) {
-        // Skip config-like files
-        if (lib.filePath.includes('config') || lib.filePath.includes('.d.ts')) continue;
+        const fileName = lib.filePath.split('/').pop() ?? '';
+
+        // Skip config/types/declaration files
+        if (/\.config\.|\.d\.ts|^types\.ts|types\/index\.ts/.test(lib.filePath)) continue;
         // Skip index/barrel files
         if (lib.filePath.endsWith('/index.ts') || lib.filePath.endsWith('/index.tsx')) continue;
+
+        // Skip barrel re-exports: files with only re-exports and no own logic
+        const node = graph.nodes.get(lib.filePath);
+        if (node && lib.exports.length > 0) {
+          const hasOwnLogic = node.metadata.exports.some(
+            (exp) => !node.metadata.imports.some((imp) => imp.specifiers.includes(exp.name))
+          );
+          if (!hasOwnLogic) continue;
+        }
 
         findings.push({
           agentId: 'dead-code',

@@ -155,17 +155,50 @@ Zero runtime dependencies after analysis — output is plain Markdown.
 | **Schema-aware** | Yes (Prisma) | No | No |
 | **Human-readable** | Excellent | Requires queries | Poor (wall of text) |
 | **Git-friendly** | Yes (meaningful diffs) | No (binary DB) | Poor (single file) |
-| **Incremental** | Planned | Re-index | No |
+| **Incremental** | Yes (watch + diff) | Re-index | No |
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `fondamenta analyze [path]` | Full codebase analysis → Markdown files |
+| `fondamenta diff [path]` | Show changes since last analysis |
+| `fondamenta watch [path]` | Watch mode — regenerate on file changes |
+| `fondamenta ai-context [path]` | Generate AI context files |
+| `fondamenta init` | Create configuration file |
+
+### `fondamenta diff`
+
+```bash
+fondamenta diff                # Show what changed
+fondamenta diff --ci           # Exit code 1 if outdated (for CI)
+```
+
+### `fondamenta watch`
+
+```bash
+fondamenta watch               # Watch and regenerate on changes
+fondamenta watch --debounce 1000  # Custom debounce (ms)
+```
+
+### `fondamenta ai-context`
+
+```bash
+fondamenta ai-context --claude    # Generate/update CLAUDE.md
+fondamenta ai-context --cursor    # Generate .cursorrules
+fondamenta ai-context --copilot   # Generate .github/copilot-instructions.md
+fondamenta ai-context --all       # All of the above
+```
 
 ## Roadmap
 
 - [x] CLI `analyze` command
 - [x] Next.js App Router support
 - [x] Prisma schema analysis
-- [x] 6 atomic generators + dependency map
-- [ ] `fondamenta watch` (incremental rebuild)
-- [ ] `fondamenta diff` (show changes since last analysis)
-- [ ] AI context generation (`.cursorrules`, `CLAUDE.md`, copilot instructions)
+- [x] 7 atomic generators + dependency map
+- [x] `fondamenta watch` (incremental rebuild)
+- [x] `fondamenta diff` (show changes since last analysis)
+- [x] AI context generation (`.cursorrules`, `CLAUDE.md`, copilot instructions)
 - [ ] GitHub Action
 - [ ] Multi-framework support (Nuxt, SvelteKit, Remix)
 - [ ] Dead code detection

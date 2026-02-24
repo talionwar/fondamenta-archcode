@@ -1,0 +1,4 @@
+{
+  "name": "nuxt-demo",
+  "dependencies": { "nuxt": "^3.0.0" }
+}

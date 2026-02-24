@@ -1,0 +1,22 @@
+name: Code Health Check
+
+on: [push, pull_request]
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install -g fondamenta-archcode
+      - name: Run analysis
+        run: fondamenta analyze
+      - name: Run agents (free)
+        run: fondamenta agents --free --ci --report
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: fondamenta-report
+          path: .planning/AGENTS-REPORT.md

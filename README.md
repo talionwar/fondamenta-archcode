@@ -127,11 +127,10 @@ export default defineConfig({
 
 | Framework | Status |
 |-----------|--------|
-| Next.js App Router | Supported |
-| Next.js Pages Router | Planned |
-| Nuxt 3 | Planned |
-| SvelteKit | Planned |
-| Remix | Planned |
+| Next.js App Router | ✅ Full support |
+| Next.js Pages Router | Partial (detection + data fetching + API handlers) |
+
+**Planned:** Nuxt 3, SvelteKit, Remix
 
 ## How it works
 
@@ -153,6 +152,7 @@ Zero runtime dependencies after analysis — output is plain Markdown.
 | **AI integration** | Any tool (reads files) | Claude Code only (MCP) | Any tool |
 | **Framework-aware** | Yes (routes, pages, auth) | AST only | No |
 | **Schema-aware** | Yes (Prisma) | No | No |
+| **Code health agents** | Yes (8 agents) | No | No |
 | **Human-readable** | Excellent | Requires queries | Poor (wall of text) |
 | **Git-friendly** | Yes (meaningful diffs) | No (binary DB) | Poor (single file) |
 | **Incremental** | Yes (watch + diff) | Re-index | No |
@@ -239,14 +239,31 @@ git add .planning/
 
 ### GitHub Action
 
+Use Fondamenta ArchCode in your CI pipeline:
+
 ```yaml
-- name: Update architecture docs
-  run: npx fondamenta-archcode analyze
-- name: Commit changes
-  run: |
-    git add .planning/
-    git diff --staged --quiet || git commit -m "docs: update fondamenta analysis"
+- name: Run code health check
+  uses: talionwar/fondamenta-archcode@main
+  with:
+    command: 'agents --free --ci'
 ```
+
+Or with custom options:
+
+```yaml
+- name: Full analysis
+  uses: talionwar/fondamenta-archcode@main
+  with:
+    command: 'agents --free --ci --report'
+    path: './my-app'
+```
+
+## Known Limitations
+
+- **Framework**: Only Next.js App Router is fully supported. Pages Router has basic detection.
+- **Schema**: Only Prisma ORM. Drizzle and TypeORM coming soon.
+- **Agent accuracy**: Dead code detection may flag Next.js convention files (layout.tsx, etc.) in edge cases. Use `--json` to filter results programmatically.
+- **Test coverage**: 68 tests (9 unit suites + 1 integration suite). Contributions welcome.
 
 ## Roadmap
 
@@ -256,12 +273,16 @@ git add .planning/
 - [x] 7 atomic generators + dependency map
 - [x] `fondamenta watch` (incremental rebuild)
 - [x] `fondamenta diff` (show changes since last analysis)
-- [x] AI context generation (`.cursorrules`, `CLAUDE.md`, copilot instructions)
-- [x] Code health agents (8 agents: dead code, circular deps, security, performance, etc.)
-- [x] Open Core licensing (3 free + 5 PRO)
-- [ ] GitHub Action
-- [ ] Multi-framework support (Nuxt, SvelteKit, Remix)
-- [ ] Ed25519 license validation (upgrade from HMAC)
+- [x] AI context generation (CLAUDE.md, .cursorrules, copilot instructions)
+- [x] Code health agents (8 agents: 3 free + 5 PRO)
+- [x] JSON output (--json) for CI/CD
+- [x] Configurable agent thresholds
+- [x] GitHub Action (CI + reusable action)
+- [x] Next.js Pages Router support (partial: detection, data fetching, API handlers)
+- [x] Test suite (68 tests: 9 unit + 1 integration)
+- [ ] Next.js Pages Router full parity with App Router
+- [ ] Nuxt 3 support
+- [ ] Drizzle schema support
 
 ## Contributing
 

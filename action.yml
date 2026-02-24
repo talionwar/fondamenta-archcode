@@ -1,0 +1,58 @@
+name: 'Fondamenta ArchCode'
+description: 'Run codebase analysis and code health agents on your TypeScript project'
+branding:
+  icon: 'search'
+  color: 'purple'
+
+inputs:
+  command:
+    description: 'Fondamenta command to run'
+    required: false
+    default: 'agents --free --ci'
+  path:
+    description: 'Project path to analyze'
+    required: false
+    default: '.'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '20'
+
+outputs:
+  findings:
+    description: 'Total number of findings'
+    value: ${{ steps.run.outputs.findings }}
+  errors:
+    description: 'Number of errors found'
+    value: ${{ steps.run.outputs.errors }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install Fondamenta ArchCode
+      shell: bash
+      run: npm install -g fondamenta-archcode@latest
+
+    - name: Run Fondamenta
+      id: run
+      shell: bash
+      run: |
+        set +e
+        OUTPUT=$(fondamenta ${{ inputs.command }} ${{ inputs.path }} --json 2>&1)
+        EXIT_CODE=$?
+
+        FINDINGS=$(echo "$OUTPUT" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));console.log(d.summary?.totalFindings??0)}catch{console.log(0)}" 2>/dev/null || echo "0")
+        ERRORS=$(echo "$OUTPUT" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));console.log(d.summary?.errors??0)}catch{console.log(0)}" 2>/dev/null || echo "0")
+
+        echo "findings=$FINDINGS" >> $GITHUB_OUTPUT
+        echo "errors=$ERRORS" >> $GITHUB_OUTPUT
+
+        if [ "$EXIT_CODE" -ne 0 ]; then
+          echo "::error::Fondamenta found $ERRORS error(s) in $FINDINGS total findings"
+        fi
+        exit $EXIT_CODE

@@ -250,6 +250,15 @@ function buildPageInfo(file: ParsedFile, framework: Framework): PageInfo {
       description: e,
     }));
 
+  // Detect Pages Router data fetching methods
+  if (file.dataFetchingMethod) {
+    dataFetching.push({
+      model: '',
+      operation: file.dataFetchingMethod,
+      description: `Data fetching: ${file.dataFetchingMethod}`,
+    });
+  }
+
   // Detect i18n
   let i18nNamespace: string | undefined;
   const i18nMatch = file.rawContent.match(/useTranslations\(['"](\w+)['"]\)/);
@@ -286,6 +295,24 @@ function buildApiRouteInfo(file: ParsedFile, framework: Framework): ApiRouteInfo
   const methods = file.exports
     .filter((e) => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'].includes(e.name))
     .map((e) => e.name);
+
+  // Pages Router: default export handler - detect methods from req.method patterns
+  if (methods.length === 0 || (methods.length === 1 && methods[0] === 'ALL')) {
+    const methodPatterns = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    for (const m of methodPatterns) {
+      if (
+        file.rawContent.includes(`'${m}'`) ||
+        file.rawContent.includes(`"${m}"`)
+      ) {
+        if (!methods.includes(m)) methods.push(m);
+      }
+    }
+    // Remove 'ALL' if we found specific methods
+    if (methods.length > 1) {
+      const idx = methods.indexOf('ALL');
+      if (idx !== -1) methods.splice(idx, 1);
+    }
+  }
 
   if (methods.length === 0) methods.push('ALL');
 

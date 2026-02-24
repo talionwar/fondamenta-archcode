@@ -1,5 +1,6 @@
 import ts from 'typescript';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import type {
   ImportInfo,
@@ -27,6 +28,7 @@ export interface ParsedFile {
   sideEffects: string[];
   jsxElements: string[];
   rawContent: string;
+  dataFetchingMethod?: 'getServerSideProps' | 'getStaticProps' | 'getStaticPaths' | 'getInitialProps';
 }
 
 export async function parseTypeScriptFile(
@@ -55,6 +57,11 @@ export async function parseTypeScriptFile(
   const sideEffects = extractSideEffects(sourceFile);
   const jsxElements = extractJsxElements(sourceFile);
 
+  // Detect Pages Router data fetching methods
+  const dataFetchingMethod = exports.find((e) =>
+    ['getServerSideProps', 'getStaticProps', 'getStaticPaths', 'getInitialProps'].includes(e.name),
+  )?.name as ParsedFile['dataFetchingMethod'];
+
   return {
     filePath,
     relativePath,
@@ -73,6 +80,7 @@ export async function parseTypeScriptFile(
     sideEffects,
     jsxElements,
     rawContent: content,
+    dataFetchingMethod,
   };
 }
 
@@ -106,10 +114,21 @@ function extractImports(
         }
       }
 
-      // Resolve relative paths
+      // Resolve relative paths with extension fallback
       let resolvedPath: string | undefined;
       if (moduleSpecifier.startsWith('.')) {
-        resolvedPath = resolve(dirname(filePath), moduleSpecifier);
+        const base = resolve(dirname(filePath), moduleSpecifier);
+        if (existsSync(base)) {
+          resolvedPath = base;
+        } else {
+          for (const ext of ['.ts', '.tsx', '.js', '.jsx', '/index.ts', '/index.tsx', '/index.js', '/index.jsx']) {
+            if (existsSync(base + ext)) {
+              resolvedPath = base + ext;
+              break;
+            }
+          }
+          if (!resolvedPath) resolvedPath = base;
+        }
       }
 
       imports.push({ source: moduleSpecifier, specifiers, isTypeOnly, resolvedPath });

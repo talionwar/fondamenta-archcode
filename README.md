@@ -1,4 +1,4 @@
-# FONDAMENTA
+# Fondamenta ArchCode
 
 **Zero-dependency codebase intelligence for AI agents and humans.**
 
@@ -6,7 +6,7 @@ Static analysis → structured Markdown → readable by any LLM. No graph databa
 
 ## Why?
 
-Every AI coding tool (Claude Code, Cursor, Copilot) needs to understand your codebase. Current solutions require running servers or databases. FONDAMENTA generates **structured Markdown files** that any LLM can read natively — no special tools needed.
+Every AI coding tool (Claude Code, Cursor, Copilot) needs to understand your codebase. Current solutions require running servers or databases. Fondamenta ArchCode generates **structured Markdown files** that any LLM can read natively — no special tools needed.
 
 ```
 npx fondamenta analyze
@@ -146,7 +146,7 @@ Zero runtime dependencies after analysis — output is plain Markdown.
 
 ## vs Alternatives
 
-| | FONDAMENTA | GitNexus | Repomix |
+| | Fondamenta ArchCode | GitNexus | Repomix |
 |---|---|---|---|
 | **Output** | Structured .md files | Graph DB (KuzuDB) | Single concatenated file |
 | **Runtime deps** | None | KuzuDB + MCP server | None |

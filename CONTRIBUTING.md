@@ -1,4 +1,4 @@
-# Contributing to FONDAMENTA
+# Contributing to Fondamenta ArchCode
 
 Thanks for your interest in contributing!
 

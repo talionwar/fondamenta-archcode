@@ -162,10 +162,40 @@ Zero runtime dependencies after analysis — output is plain Markdown.
 | Command | Description |
 |---------|-------------|
 | `fondamenta analyze [path]` | Full codebase analysis → Markdown files |
+| `fondamenta agents [path]` | Run code health agents on the project graph |
 | `fondamenta diff [path]` | Show changes since last analysis |
 | `fondamenta watch [path]` | Watch mode — regenerate on file changes |
 | `fondamenta ai-context [path]` | Generate AI context files |
 | `fondamenta init` | Create configuration file |
+
+### `fondamenta agents`
+
+Run 8 code health agents (3 free, 5 PRO) that analyze your project graph and produce actionable findings.
+
+```bash
+fondamenta agents              # All available agents
+fondamenta agents --free       # Free agents only
+fondamenta agents --agent dead-code  # Single agent
+fondamenta agents --ci         # Exit code 1 if errors found
+fondamenta agents --report     # Generate AGENTS-REPORT.md
+fondamenta agents --list       # List all agents with tier
+```
+
+**Free agents:**
+| Agent | What it checks |
+|-------|---------------|
+| `dead-code` | Orphan components, unused exports, unreferenced lib files |
+| `circular-deps` | Circular import chains (DFS cycle detection) |
+| `architecture-guard` | Oversized files, god components, unprotected mutation routes |
+
+**PRO agents** (license required):
+| Agent | What it checks |
+|-------|---------------|
+| `security-scanner` | Auth gaps, env var leaks, insecure patterns |
+| `schema-drift` | Code↔schema model mismatches |
+| `performance-sentinel` | Heavy pages, unnecessary client components, API waterfalls |
+| `convention-enforcer` | Naming, barrel exports, auth pattern consistency |
+| `impact-analyzer` | Fan-in/out hotspots, hub components, bridge files |
 
 ### `fondamenta diff`
 
@@ -227,10 +257,11 @@ git add .planning/
 - [x] `fondamenta watch` (incremental rebuild)
 - [x] `fondamenta diff` (show changes since last analysis)
 - [x] AI context generation (`.cursorrules`, `CLAUDE.md`, copilot instructions)
+- [x] Code health agents (8 agents: dead code, circular deps, security, performance, etc.)
+- [x] Open Core licensing (3 free + 5 PRO)
 - [ ] GitHub Action
 - [ ] Multi-framework support (Nuxt, SvelteKit, Remix)
-- [ ] Dead code detection
-- [ ] Blast radius calculation
+- [ ] Ed25519 license validation (upgrade from HMAC)
 
 ## Contributing
 

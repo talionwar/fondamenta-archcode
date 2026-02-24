@@ -1,6 +1,6 @@
 {
   "version": "0.3.0",
-  "timestamp": "2026-02-24T03:36:28.845Z",
+  "timestamp": "2026-02-24T03:52:24.440Z",
   "summary": {
     "totalFindings": 10,
     "errors": 1,
@@ -15,7 +15,7 @@
       "agentId": "dead-code",
       "tier": "free",
       "skipped": false,
-      "durationMs": 2,
+      "durationMs": 1,
       "findings": [
         {
           "agentId": "dead-code",
@@ -53,7 +53,7 @@
           "agentId": "dead-code",
           "severity": "info",
           "title": "Unused export",
-          "filePath": "/root/fondamenta/examples/demo-fullstack/lib/auth.ts",
+          "filePath": "lib/auth.ts",
           "message": "Export `getServerSession` (function) is never imported by any file in the project",
           "suggestion": "Remove the export or mark it as internal"
         },
@@ -61,7 +61,7 @@
           "agentId": "dead-code",
           "severity": "info",
           "title": "Unused export",
-          "filePath": "/root/fondamenta/examples/demo-fullstack/lib/utils.ts",
+          "filePath": "lib/utils.ts",
           "message": "Export `truncate` (function) is never imported by any file in the project",
           "suggestion": "Remove the export or mark it as internal"
         },
@@ -69,7 +69,7 @@
           "agentId": "dead-code",
           "severity": "info",
           "title": "Unused export",
-          "filePath": "/root/fondamenta/examples/demo-fullstack/lib/utils.ts",
+          "filePath": "lib/utils.ts",
           "message": "Export `capitalize` (function) is never imported by any file in the project",
           "suggestion": "Remove the export or mark it as internal"
         }
@@ -79,7 +79,7 @@
       "agentId": "circular-deps",
       "tier": "free",
       "skipped": false,
-      "durationMs": 0,
+      "durationMs": 1,
       "findings": [
         {
           "agentId": "circular-deps",

@@ -176,7 +176,7 @@ function buildGraph(
     nodes.set(file.relativePath, {
       id: file.relativePath,
       type: nodeType,
-      filePath: file.filePath,
+      filePath: file.relativePath,
       metadata: {
         name: file.exports[0]?.name ?? file.relativePath.split('/').pop()?.replace(/\.\w+$/, '') ?? '',
         exports: file.exports,

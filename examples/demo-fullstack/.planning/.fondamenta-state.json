@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "analyzedAt": "2026-02-24T03:36:18.816Z",
+  "analyzedAt": "2026-02-24T03:52:18.273Z",
   "framework": "auto",
   "files": {
     "fondamenta.config.ts": {
@@ -87,13 +87,13 @@
       "hash": "22292ba85589b950b92e98c57682437e",
       "size": 69
     },
-    "app/products/page.tsx": {
-      "hash": "ec1f53bb66fb8faf3c1f9be1bee1d7ce",
-      "size": 367
-    },
     "app/dashboard/page.tsx": {
       "hash": "29bb9ed6449bf90aa66b9ea42ab5a999",
       "size": 2087
+    },
+    "app/products/page.tsx": {
+      "hash": "ec1f53bb66fb8faf3c1f9be1bee1d7ce",
+      "size": 367
     },
     "components/ui/Avatar.tsx": {
       "hash": "009aae50d2d93f3700d85d0c99f09e69",
@@ -139,13 +139,13 @@
       "hash": "b9811150fdaec526b59b7edab2c8ebdf",
       "size": 109
     },
-    "src/db/schema.ts": {
-      "hash": "ce2d56ac2e6d2b3f2c1b5e0f232759b6",
-      "size": 1284
-    },
     "nuxt-app/composables/useCounter.ts": {
       "hash": "4850e8a769c8e1986266b5a54c03cd6c",
       "size": 209
+    },
+    "src/db/schema.ts": {
+      "hash": "ce2d56ac2e6d2b3f2c1b5e0f232759b6",
+      "size": 1284
     },
     "app/api/orders/route.ts": {
       "hash": "024c6fcc5a8a85cbbd32f9d9636834c8",

@@ -12,11 +12,11 @@
 | Info | 3 |
 | Agents ran | 3 |
 | Agents skipped | 0 |
-| Duration | 3ms |
+| Duration | 2ms |
 
 ## Agent Results
 
-### Dead Code Detector `free` — 7 findings (2ms)
+### Dead Code Detector `free` — 7 findings (1ms)
 
 🟡 **Orphan component**
 - File: `components/OrphanCard.tsx`
@@ -39,17 +39,17 @@
 - Suggestion: Remove the file or restore imports
 
 🔵 **Unused export**
-- File: `/root/fondamenta/examples/demo-fullstack/lib/auth.ts`
+- File: `lib/auth.ts`
 - Export `getServerSession` (function) is never imported by any file in the project
 - Suggestion: Remove the export or mark it as internal
 
 🔵 **Unused export**
-- File: `/root/fondamenta/examples/demo-fullstack/lib/utils.ts`
+- File: `lib/utils.ts`
 - Export `truncate` (function) is never imported by any file in the project
 - Suggestion: Remove the export or mark it as internal
 
 🔵 **Unused export**
-- File: `/root/fondamenta/examples/demo-fullstack/lib/utils.ts`
+- File: `lib/utils.ts`
 - Export `capitalize` (function) is never imported by any file in the project
 - Suggestion: Remove the export or mark it as internal
 

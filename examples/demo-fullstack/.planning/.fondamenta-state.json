@@ -1,0 +1,175 @@
+{
+  "version": "1.0.0",
+  "analyzedAt": "2026-02-24T03:36:18.816Z",
+  "framework": "auto",
+  "files": {
+    "fondamenta.config.ts": {
+      "hash": "4a8ae4929c4b806a780bebac2ee35f6c",
+      "size": 583
+    },
+    "app/layout.tsx": {
+      "hash": "0718048dc7ff74c330da5c0a7bcd89b6",
+      "size": 163
+    },
+    "app/page.tsx": {
+      "hash": "7a09b32c5b53536cbae73f73ea14c966",
+      "size": 588
+    },
+    "circular/module-a.ts": {
+      "hash": "4aa419b4e1fff01329b13d6ee18451d2",
+      "size": 168
+    },
+    "circular/module-b.ts": {
+      "hash": "990a43f5cee0988059cb53bb9893f1bb",
+      "size": 168
+    },
+    "circular/module-c.ts": {
+      "hash": "b748e57c9d94a20ac68d9b4580f35b9c",
+      "size": 168
+    },
+    "components/DashboardStats.tsx": {
+      "hash": "a7404a1a4243495c37f47a17347b3fc1",
+      "size": 200
+    },
+    "components/GodComponent.tsx": {
+      "hash": "74582b50ab867a800596f3ee01358a01",
+      "size": 1138
+    },
+    "components/OrderForm.tsx": {
+      "hash": "a5bd1c252e8df6a582c84043b5d4dbe9",
+      "size": 260
+    },
+    "components/OrphanCard.tsx": {
+      "hash": "2c50f7b191e3c53afd07f09ed7c67fb2",
+      "size": 172
+    },
+    "components/ProductCard.tsx": {
+      "hash": "5f193f1e5006a38a3f0cbdaec704921c",
+      "size": 391
+    },
+    "components/UserProfile.tsx": {
+      "hash": "81a6bf106a9a19c861710122e1066828",
+      "size": 271
+    },
+    "hooks/useCart.ts": {
+      "hash": "e51699dd9be32b0a869d2cb76abccf89",
+      "size": 752
+    },
+    "lib/analytics.ts": {
+      "hash": "e8d6c0a555b8b122a8aa6f2f82eeb79a",
+      "size": 459
+    },
+    "lib/api-client.ts": {
+      "hash": "a636ecc29724d9c50716d379ff1fd792",
+      "size": 386
+    },
+    "lib/auth.ts": {
+      "hash": "0e7979d8eaee736a8d58e01a42012bfa",
+      "size": 200
+    },
+    "lib/db.ts": {
+      "hash": "ceff5a9e7a325c9b9a170d9fb0d5af8c",
+      "size": 552
+    },
+    "lib/payments.ts": {
+      "hash": "c721bab140d978db4641e4537118c2da",
+      "size": 520
+    },
+    "lib/unused-helper.ts": {
+      "hash": "82341aafe5f5b631f3e3361d0764457e",
+      "size": 127
+    },
+    "lib/utils.ts": {
+      "hash": "73ea85d8bfb4ad153d93ea52b74a8b3b",
+      "size": 557
+    },
+    "nuxt-app/nuxt.config.ts": {
+      "hash": "22292ba85589b950b92e98c57682437e",
+      "size": 69
+    },
+    "app/products/page.tsx": {
+      "hash": "ec1f53bb66fb8faf3c1f9be1bee1d7ce",
+      "size": 367
+    },
+    "app/dashboard/page.tsx": {
+      "hash": "29bb9ed6449bf90aa66b9ea42ab5a999",
+      "size": 2087
+    },
+    "components/ui/Avatar.tsx": {
+      "hash": "009aae50d2d93f3700d85d0c99f09e69",
+      "size": 113
+    },
+    "components/ui/Badge.tsx": {
+      "hash": "b9dc35864956cc6771fe26cb193c0d07",
+      "size": 102
+    },
+    "components/ui/Button.tsx": {
+      "hash": "e5047e032cc05a0bb42baa5fd70d0183",
+      "size": 157
+    },
+    "components/ui/Card.tsx": {
+      "hash": "8900e4969b9e1d222121a624769695e3",
+      "size": 186
+    },
+    "components/ui/Dropdown.tsx": {
+      "hash": "25959d7dcb7490defc6611c25e663c61",
+      "size": 135
+    },
+    "components/ui/Input.tsx": {
+      "hash": "e3b97ead59e93fb683e5a600a10e87e6",
+      "size": 132
+    },
+    "components/ui/Modal.tsx": {
+      "hash": "e034ae70d228c81e10b3a08ea91af6f1",
+      "size": 176
+    },
+    "components/ui/Spinner.tsx": {
+      "hash": "80904f9f790e343c3ccbb805656a0a1f",
+      "size": 68
+    },
+    "components/ui/Table.tsx": {
+      "hash": "77ef3dc615f3ef8e94e2358fd4d1ca4e",
+      "size": 161
+    },
+    "components/ui/Tabs.tsx": {
+      "hash": "b919c022740ad98c2578ce70009c060b",
+      "size": 119
+    },
+    "components/ui/Toast.tsx": {
+      "hash": "b9811150fdaec526b59b7edab2c8ebdf",
+      "size": 109
+    },
+    "src/db/schema.ts": {
+      "hash": "ce2d56ac2e6d2b3f2c1b5e0f232759b6",
+      "size": 1284
+    },
+    "nuxt-app/composables/useCounter.ts": {
+      "hash": "4850e8a769c8e1986266b5a54c03cd6c",
+      "size": 209
+    },
+    "app/api/orders/route.ts": {
+      "hash": "024c6fcc5a8a85cbbd32f9d9636834c8",
+      "size": 434
+    },
+    "app/api/products/route.ts": {
+      "hash": "b4c1c04f5ccee55c0fd13768bf422354",
+      "size": 609
+    },
+    "nuxt-app/server/api/hello.ts": {
+      "hash": "1c693ded08c68aac6538f25fb834ad45",
+      "size": 92
+    },
+    "app/api/admin/stats/route.ts": {
+      "hash": "67a718487f0d274abf562b94cfb2ac39",
+      "size": 367
+    }
+  },
+  "stats": {
+    "pages": 3,
+    "components": 23,
+    "apiRoutes": 4,
+    "libs": 7,
+    "models": 5,
+    "enums": 1
+  }
+}

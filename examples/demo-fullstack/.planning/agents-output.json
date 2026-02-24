@@ -1,0 +1,119 @@
+{
+  "version": "0.3.0",
+  "timestamp": "2026-02-24T03:36:28.845Z",
+  "summary": {
+    "totalFindings": 10,
+    "errors": 1,
+    "warnings": 6,
+    "infos": 3,
+    "agentsRan": 3,
+    "agentsSkipped": 0,
+    "totalDurationMs": 2
+  },
+  "results": [
+    {
+      "agentId": "dead-code",
+      "tier": "free",
+      "skipped": false,
+      "durationMs": 2,
+      "findings": [
+        {
+          "agentId": "dead-code",
+          "severity": "warning",
+          "title": "Orphan component",
+          "filePath": "components/OrphanCard.tsx",
+          "message": "Component `OrphanCard` is never imported or rendered by any other file",
+          "suggestion": "Remove the file or restore the import"
+        },
+        {
+          "agentId": "dead-code",
+          "severity": "warning",
+          "title": "Orphan lib file",
+          "filePath": "lib/api-client.ts",
+          "message": "Lib file has 1 export(s) but is never imported",
+          "suggestion": "Remove the file or restore imports"
+        },
+        {
+          "agentId": "dead-code",
+          "severity": "warning",
+          "title": "Orphan lib file",
+          "filePath": "lib/payments.ts",
+          "message": "Lib file has 2 export(s) but is never imported",
+          "suggestion": "Remove the file or restore imports"
+        },
+        {
+          "agentId": "dead-code",
+          "severity": "warning",
+          "title": "Orphan lib file",
+          "filePath": "lib/unused-helper.ts",
+          "message": "Lib file has 2 export(s) but is never imported",
+          "suggestion": "Remove the file or restore imports"
+        },
+        {
+          "agentId": "dead-code",
+          "severity": "info",
+          "title": "Unused export",
+          "filePath": "/root/fondamenta/examples/demo-fullstack/lib/auth.ts",
+          "message": "Export `getServerSession` (function) is never imported by any file in the project",
+          "suggestion": "Remove the export or mark it as internal"
+        },
+        {
+          "agentId": "dead-code",
+          "severity": "info",
+          "title": "Unused export",
+          "filePath": "/root/fondamenta/examples/demo-fullstack/lib/utils.ts",
+          "message": "Export `truncate` (function) is never imported by any file in the project",
+          "suggestion": "Remove the export or mark it as internal"
+        },
+        {
+          "agentId": "dead-code",
+          "severity": "info",
+          "title": "Unused export",
+          "filePath": "/root/fondamenta/examples/demo-fullstack/lib/utils.ts",
+          "message": "Export `capitalize` (function) is never imported by any file in the project",
+          "suggestion": "Remove the export or mark it as internal"
+        }
+      ]
+    },
+    {
+      "agentId": "circular-deps",
+      "tier": "free",
+      "skipped": false,
+      "durationMs": 0,
+      "findings": [
+        {
+          "agentId": "circular-deps",
+          "severity": "warning",
+          "title": "Circular dependency (3 files)",
+          "filePath": "circular/module-a.ts",
+          "message": "Import cycle: circular/module-a.ts → circular/module-b.ts → circular/module-c.ts → circular/module-a.ts",
+          "suggestion": "Consider introducing an interface or barrel file to break the dependency chain"
+        }
+      ]
+    },
+    {
+      "agentId": "architecture-guard",
+      "tier": "free",
+      "skipped": false,
+      "durationMs": 0,
+      "findings": [
+        {
+          "agentId": "architecture-guard",
+          "severity": "warning",
+          "title": "God component",
+          "filePath": "app/dashboard/page.tsx",
+          "message": "Component `DashboardPage` has 19 imports (threshold: 15)",
+          "suggestion": "Extract sub-components or use composition pattern"
+        },
+        {
+          "agentId": "architecture-guard",
+          "severity": "error",
+          "title": "Unprotected mutation route",
+          "filePath": "app/api/orders/route.ts",
+          "message": "Route `app/api/orders/route.ts` (POST,GET) accesses DB models [order] without auth",
+          "suggestion": "Add auth() or getServerSession check before DB operations"
+        }
+      ]
+    }
+  ]
+}

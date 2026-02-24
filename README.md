@@ -9,7 +9,7 @@ Static analysis → structured Markdown → readable by any LLM. No graph databa
 Every AI coding tool (Claude Code, Cursor, Copilot) needs to understand your codebase. Current solutions require running servers or databases. Fondamenta ArchCode generates **structured Markdown files** that any LLM can read natively — no special tools needed.
 
 ```
-npx fondamenta analyze
+npx fondamenta-archcode analyze
 ```
 
 That's it. Your `.planning/` directory now contains a complete architectural analysis.
@@ -38,16 +38,16 @@ Each file is:
 
 ```bash
 # Analyze current project
-npx fondamenta analyze
+npx fondamenta-archcode analyze
 
 # Analyze specific directory
-npx fondamenta analyze ./my-project
+npx fondamenta-archcode analyze ./my-project
 
 # Custom output directory
-npx fondamenta analyze --output .docs
+npx fondamenta-archcode analyze --output .docs
 
 # Initialize config file
-npx fondamenta init
+npx fondamenta-archcode init
 ```
 
 ## Sample Output
@@ -98,7 +98,7 @@ npx fondamenta init
 
 ## Configuration
 
-Create `fondamenta.config.ts` (or run `npx fondamenta init`):
+Create `fondamenta.config.ts` (or run `npx fondamenta-archcode init`):
 
 ```typescript
 import { defineConfig } from 'fondamenta';
@@ -211,7 +211,7 @@ git add .planning/
 
 ```yaml
 - name: Update architecture docs
-  run: npx fondamenta analyze
+  run: npx fondamenta-archcode analyze
 - name: Commit changes
   run: |
     git add .planning/

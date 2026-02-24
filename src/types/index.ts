@@ -203,6 +203,11 @@ export interface FondamentaConfig {
     generateCursorRules: boolean;
     generateCopilotInstructions: boolean;
   };
+  agents?: {
+    enabled?: boolean;
+    license?: string;
+    exclude?: string[];
+  };
 }
 
 export const DEFAULT_CONFIG: FondamentaConfig = {

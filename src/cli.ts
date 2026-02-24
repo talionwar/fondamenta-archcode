@@ -17,8 +17,16 @@ import {
 import { generateClaudeMd, generateCursorRules, generateCopilotInstructions } from './generators/ai-context-generator.js';
 import { saveState, computeDiff, loadState } from './utils/state.js';
 import { DEFAULT_CONFIG, type FondamentaConfig } from './types/index.js';
+import {
+  ALL_AGENTS,
+  runAgents,
+  printAgentResult,
+  printFindings,
+  printSummary,
+  generateAgentsReport,
+} from './agents/index.js';
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 
 const program = new Command();
 
@@ -430,6 +438,100 @@ export default defineConfig({
 
     await writeFile(configPath, configContent, 'utf-8');
     console.log(chalk.green('  Created fondamenta.config.ts'));
+  });
+
+// ── AGENTS ──────────────────────────────────────────────────────────
+
+program
+  .command('agents')
+  .description('Run code health agents on the project graph')
+  .argument('[path]', 'Project root directory', '.')
+  .option('-o, --output <dir>', 'Output directory', '.planning')
+  .option('--free', 'Run only free-tier agents')
+  .option('--agent <id>', 'Run a single agent by ID')
+  .option('--ci', 'Exit with code 1 if errors are found')
+  .option('--report', 'Generate AGENTS-REPORT.md in output directory')
+  .option('--list', 'List all available agents')
+  .option('-f, --framework <name>', 'Force framework detection')
+  .action(async (path: string, opts: Record<string, unknown>) => {
+    const projectRoot = resolve(path);
+    const outputDir = resolve(projectRoot, opts.output as string);
+
+    printBanner();
+
+    // --list: just show agents and exit
+    if (opts.list) {
+      console.log(chalk.dim('  Available agents:'));
+      console.log('');
+      for (const agent of ALL_AGENTS) {
+        const tierBadge = agent.tier === 'free'
+          ? chalk.green(' FREE ')
+          : chalk.yellow(' PRO  ');
+        console.log(`  ${tierBadge} ${chalk.bold(agent.id)}`);
+        console.log(chalk.dim(`         ${agent.description}`));
+      }
+      console.log('');
+      console.log(chalk.dim(`  ${ALL_AGENTS.filter(a => a.tier === 'free').length} free, ${ALL_AGENTS.filter(a => a.tier === 'pro').length} pro`));
+      console.log('');
+      return;
+    }
+
+    if (!existsSync(projectRoot)) {
+      console.error(chalk.red(`  Error: Directory not found: ${projectRoot}`));
+      process.exit(1);
+    }
+
+    const config = await loadConfig(projectRoot, opts);
+
+    // Analyze the project
+    const spinnerAnalyze = ora('  Analyzing codebase...').start();
+    const result = await analyzeProject(projectRoot, config);
+    spinnerAnalyze.succeed(
+      `  Analyzed ${chalk.cyan(String(result.totalFiles))} files in ${chalk.cyan(`${result.duration}ms`)}`,
+    );
+
+    // Run agents
+    const spinnerAgents = ora('  Running agents...').start();
+
+    const agentOptions: { freeOnly?: boolean; agentIds?: string[] } = {};
+    if (opts.free) agentOptions.freeOnly = true;
+    if (opts.agent) agentOptions.agentIds = [opts.agent as string];
+
+    const summary = runAgents(result.graph, config, agentOptions);
+    spinnerAgents.stop();
+
+    console.log('');
+
+    // Print per-agent results
+    for (const agentResult of summary.results) {
+      printAgentResult(agentResult, ALL_AGENTS);
+    }
+
+    // Print detailed findings (errors first, then warnings)
+    const errorsAndWarnings = summary.results
+      .flatMap((r) => r.findings)
+      .filter((f) => f.severity === 'error' || f.severity === 'warning');
+    printFindings(errorsAndWarnings);
+
+    // Print summary line
+    console.log('');
+    printSummary(summary);
+    console.log('');
+
+    // Generate report if requested
+    if (opts.report) {
+      await mkdir(outputDir, { recursive: true });
+      const reportPath = resolve(outputDir, 'AGENTS-REPORT.md');
+      const reportContent = generateAgentsReport(summary, ALL_AGENTS);
+      await writeFile(reportPath, reportContent, 'utf-8');
+      console.log(chalk.green(`  Report saved to ${reportPath}`));
+      console.log('');
+    }
+
+    // CI mode: exit with error if findings include errors
+    if (opts.ci && summary.errors > 0) {
+      process.exit(1);
+    }
   });
 
 program.parse();

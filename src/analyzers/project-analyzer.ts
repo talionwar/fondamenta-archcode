@@ -163,6 +163,8 @@ function buildGraph(
             ? 'component'
             : 'lib';
 
+    const lineCount = file.rawContent.split('\n').length;
+
     nodes.set(file.relativePath, {
       id: file.relativePath,
       type: nodeType,
@@ -171,6 +173,7 @@ function buildGraph(
         name: file.exports[0]?.name ?? file.relativePath.split('/').pop()?.replace(/\.\w+$/, '') ?? '',
         exports: file.exports,
         imports: file.imports,
+        lineCount,
       },
     });
 

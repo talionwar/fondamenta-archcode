@@ -152,7 +152,7 @@ Zero runtime dependencies after analysis — output is plain Markdown.
 | **Runtime deps** | None | KuzuDB + MCP server | None |
 | **AI integration** | Any tool (reads files) | Claude Code only (MCP) | Any tool |
 | **Framework-aware** | Yes (routes, pages, auth) | AST only | No |
-| **Schema-aware** | Yes (Prisma) | No | No |
+| **Schema-aware** | Yes (Prisma + Drizzle) | No | No |
 | **Code health agents** | Yes (8 agents) | No | No |
 | **Human-readable** | Excellent | Requires queries | Poor (wall of text) |
 | **Git-friendly** | Yes (meaningful diffs) | No (binary DB) | Poor (single file) |
@@ -261,10 +261,10 @@ Or with custom options:
 
 ## Known Limitations
 
-- **Framework**: Only Next.js App Router is fully supported. Pages Router has basic detection.
-- **Schema**: Only Prisma ORM. Drizzle and TypeORM coming soon.
+- **Framework**: Next.js App Router fully supported. Pages Router and Nuxt 3 have partial support. SvelteKit and Remix planned.
+- **Schema**: Prisma and Drizzle ORM supported. TypeORM planned.
 - **Agent accuracy**: Dead code detection may flag Next.js convention files (layout.tsx, etc.) in edge cases. Use `--json` to filter results programmatically.
-- **Test coverage**: 68 tests (9 unit suites + 1 integration suite). Contributions welcome.
+- **Test coverage**: 111 tests (14 unit suites + 2 integration suites). Contributions welcome.
 
 ## Roadmap
 
@@ -280,10 +280,13 @@ Or with custom options:
 - [x] Configurable agent thresholds
 - [x] GitHub Action (CI + reusable action)
 - [x] Next.js Pages Router support (partial: detection, data fetching, API handlers)
-- [x] Test suite (68 tests: 9 unit + 1 integration)
+- [x] Test suite (111 tests: 14 unit + 2 integration)
+- [x] Drizzle schema support (pgTable, mysqlTable, sqliteTable, relations, enums)
+- [x] Nuxt 3 support (partial: pages, server/api, composables, auto-imports)
+- [x] Watch/Diff agents integration (--agents flag)
 - [ ] Next.js Pages Router full parity with App Router
-- [ ] Nuxt 3 support
-- [ ] Drizzle schema support
+- [ ] SvelteKit support
+- [ ] Remix support
 
 ## Contributing
 

@@ -12,7 +12,7 @@ export function header(title: string, ctx: GeneratorContext, count: number, desc
 > **Project:** ${ctx.projectName}
 > **Generated:** ${ctx.generatedAt}
 > **Total:** ${count} ${description}
-> **Tool:** [fondamenta](https://github.com/talionwar/fondamenta)
+> **Tool:** [fondamenta](https://github.com/talionwar/fondamenta-archcode)
 
 ---
 

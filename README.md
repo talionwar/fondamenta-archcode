@@ -129,8 +129,9 @@ export default defineConfig({
 |-----------|--------|
 | Next.js App Router | ✅ Full support |
 | Next.js Pages Router | Partial (detection + data fetching + API handlers) |
+| Nuxt 3 | Partial (pages, composables, server API routes) |
 
-**Planned:** Nuxt 3, SvelteKit, Remix
+**Planned:** SvelteKit, Remix
 
 ## How it works
 

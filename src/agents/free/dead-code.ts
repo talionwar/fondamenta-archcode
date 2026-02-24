@@ -37,6 +37,18 @@ export const deadCodeAgent: Agent = {
         const fileName = comp.filePath.split('/').pop() ?? '';
         if (/^(layout|loading|error|not-found|template|default|global-error)\.(tsx|ts)$/.test(fileName)) continue;
 
+        // Skip Nuxt auto-imports (only for Nuxt projects)
+        if (_config.framework === 'nuxt') {
+          const isNuxtAutoImport =
+            comp.filePath.startsWith('components/') ||
+            comp.filePath.startsWith('src/components/') ||
+            comp.filePath.startsWith('composables/') ||
+            comp.filePath.startsWith('src/composables/') ||
+            comp.filePath.startsWith('utils/') ||
+            comp.filePath.startsWith('src/utils/');
+          if (isNuxtAutoImport) continue;
+        }
+
         // Skip index/barrel files
         if (comp.filePath.endsWith('/index.ts') || comp.filePath.endsWith('/index.tsx')) continue;
 

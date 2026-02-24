@@ -339,6 +339,8 @@ function classifyAsPage(relativePath: string): boolean {
   if (relativePath.match(/app\/page\.(tsx?|jsx?)$/)) return true;
   // Next.js Pages Router
   if (relativePath.match(/pages\/.*\.(tsx?|jsx?)$/) && !relativePath.includes('/api/')) return true;
+  // Nuxt pages
+  if (relativePath.match(/pages\/.*\.vue$/) && !relativePath.includes('/api/')) return true;
   return false;
 }
 
@@ -347,6 +349,8 @@ function classifyAsApiRoute(relativePath: string): boolean {
   if (relativePath.match(/app\/api\/.*\/route\.(tsx?|jsx?)$/)) return true;
   // Next.js Pages Router API
   if (relativePath.match(/pages\/api\/.*\.(tsx?|jsx?)$/)) return true;
+  // Nuxt server API
+  if (relativePath.match(/server\/api\/.*\.(ts|js)$/)) return true;
   return false;
 }
 
@@ -368,11 +372,15 @@ function classifyAsComponent(relativePath: string, exports: ExportInfo[]): boole
 function classifyAsHook(relativePath: string, exports: ExportInfo[]): boolean {
   const fileName = relativePath.split('/').pop() ?? '';
   if (fileName.startsWith('use')) return true;
+  // Nuxt composables
+  if (relativePath.startsWith('composables/') || relativePath.startsWith('src/composables/'))
+    return true;
   return exports.some((e) => e.name.startsWith('use') && e.kind === 'function');
 }
 
 function classifyAsLib(relativePath: string): boolean {
   if (relativePath.startsWith('lib/') || relativePath.startsWith('src/lib/')) return true;
   if (relativePath.startsWith('utils/') || relativePath.startsWith('src/utils/')) return true;
+  if (relativePath.startsWith('server/utils/')) return true;
   return false;
 }

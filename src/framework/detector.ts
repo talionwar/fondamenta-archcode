@@ -47,6 +47,16 @@ export async function detectFramework(projectRoot: string): Promise<DetectionRes
     framework = 'nuxt';
     signals.push('nuxt.config found');
     confidence = 80;
+
+    // Nuxt-specific directories boost confidence
+    if (existsSync(join(projectRoot, 'server/api'))) {
+      signals.push('server/api/ directory found');
+      confidence = Math.min(confidence + 10, 100);
+    }
+    if (existsSync(join(projectRoot, 'composables'))) {
+      signals.push('composables/ directory found');
+      confidence = Math.min(confidence + 5, 100);
+    }
   }
 
   // Check for SvelteKit
@@ -88,6 +98,9 @@ export async function detectFramework(projectRoot: string): Promise<DetectionRes
       if (deps['@remix-run/node'] || deps['@remix-run/react']) {
         signals.push('remix packages in dependencies');
         confidence = Math.min(confidence + 20, 100);
+      }
+      if (deps['drizzle-orm']) {
+        signals.push(`drizzle-orm@${deps['drizzle-orm']} in dependencies`);
       }
     }
   } catch {

@@ -141,6 +141,7 @@ program
   .argument('[path]', 'Project root directory', '.')
   .option('-o, --output <dir>', 'Output directory', '.planning')
   .option('--ci', 'Exit with code 1 if analysis is outdated')
+  .option('--agents', 'Show agent findings diff if AGENTS-REPORT.md exists')
   .action(async (path: string, opts: Record<string, unknown>) => {
     const projectRoot = resolve(path);
     const outputDir = resolve(projectRoot, opts.output as string);
@@ -210,6 +211,33 @@ program
     console.log(chalk.yellow(`  ⚠ Analysis is outdated (${total} changes). Run \`fondamenta analyze\` to update.`));
     console.log('');
 
+    // Show agents diff if requested
+    if (opts.agents) {
+      const reportPath = resolve(outputDir, 'AGENTS-REPORT.md');
+      if (existsSync(reportPath)) {
+        const spinnerAgents = ora('  Running agents...').start();
+        const result = await analyzeProject(projectRoot, config);
+        const summary = runAgents(result.graph, config);
+        spinnerAgents.stop();
+
+        const previousReport = await readFile(reportPath, 'utf-8');
+        const prevFindingsMatch = previousReport.match(/(\d+) findings/);
+        const prevFindings = prevFindingsMatch ? parseInt(prevFindingsMatch[1]) : 0;
+        const currentFindings = summary.results.reduce((sum, r) => sum + r.findings.length, 0);
+
+        console.log('');
+        if (currentFindings > prevFindings) {
+          console.log(chalk.red(`  ⚠ ${currentFindings - prevFindings} new findings since last report`));
+        } else if (currentFindings < prevFindings) {
+          console.log(chalk.green(`  ✓ ${prevFindings - currentFindings} fewer findings since last report`));
+        } else {
+          console.log(chalk.dim(`  → Agent findings unchanged (${currentFindings})`));
+        }
+      } else {
+        console.log(chalk.dim('  No AGENTS-REPORT.md found. Run `fondamenta agents --report` first.'));
+      }
+    }
+
     if (ciMode) process.exit(1);
   });
 
@@ -221,6 +249,7 @@ program
   .argument('[path]', 'Project root directory', '.')
   .option('-o, --output <dir>', 'Output directory', '.planning')
   .option('-d, --debounce <ms>', 'Debounce interval in ms', '500')
+  .option('--agents', 'Run code health agents after each regeneration')
   .action(async (path: string, opts: Record<string, unknown>) => {
     const projectRoot = resolve(path);
     const outputDir = resolve(projectRoot, opts.output as string);
@@ -238,7 +267,7 @@ program
     const projectName = await getProjectName(projectRoot);
 
     await mkdir(resolve(outputDir, 'dependencies'), { recursive: true });
-    await runGeneration(projectRoot, outputDir, config, projectName, initialResult);
+    await runGeneration(projectRoot, outputDir, config, projectName, initialResult, opts.agents as boolean);
     console.log(chalk.green(`  ✓ Initial analysis complete (${initialResult.totalFiles} files)`));
     console.log('');
 
@@ -271,7 +300,7 @@ program
       const spinner = ora('  Regenerating...').start();
       try {
         const result = await analyzeProject(projectRoot, config);
-        await runGeneration(projectRoot, outputDir, config, projectName, result);
+        await runGeneration(projectRoot, outputDir, config, projectName, result, opts.agents as boolean);
         spinner.succeed(`  Regenerated (${result.totalFiles} files, ${result.duration}ms)`);
       } catch (err) {
         spinner.fail(`  Regeneration failed: ${err}`);
@@ -623,6 +652,7 @@ async function runGeneration(
   config: FondamentaConfig,
   projectName: string,
   result: import('./analyzers/project-analyzer.js').AnalysisResult,
+  runAgentsFlag?: boolean,
 ) {
   const ctx = {
     graph: result.graph,
@@ -649,6 +679,12 @@ async function runGeneration(
     models: result.graph.schema.models.length,
     enums: result.graph.schema.enums.length,
   });
+
+  // Run agents if requested
+  if (runAgentsFlag) {
+    const summary = runAgents(result.graph, config);
+    printSummary(summary);
+  }
 }
 
 async function loadConfig(

@@ -4,7 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import ts from 'typescript';
 import { parseTypeScriptFile, type ParsedFile } from './typescript-parser.js';
+import { parseVueFile, type ParsedVueFile } from './vue-parser.js';
 import { parsePrismaSchema } from '../schema/prisma-parser.js';
+import { parseDrizzleSchema } from '../schema/drizzle-parser.js';
 import { detectFramework } from '../framework/detector.js';
 import type {
   FondamentaConfig,
@@ -73,12 +75,13 @@ async function discoverFiles(
   projectRoot: string,
   config: FondamentaConfig,
 ): Promise<string[]> {
-  const patterns = ['**/*.ts', '**/*.tsx'];
+  const patterns = ['**/*.ts', '**/*.tsx', '**/*.vue'];
   const ignore = [
     ...config.exclude,
     '**/node_modules/**',
     '**/.next/**',
     '**/dist/**',
+    '**/.nuxt/**',
   ];
 
   const files = await fg(patterns, {
@@ -100,8 +103,13 @@ async function parseAllFiles(
 
   for (const file of files) {
     try {
-      const parsed = await parseTypeScriptFile(file, projectRoot, compilerOptions);
-      results.push(parsed);
+      if (file.endsWith('.vue')) {
+        const vueParsed = parseVueFile(file, projectRoot);
+        results.push(vueParsed as unknown as ParsedFile);
+      } else {
+        const parsed = await parseTypeScriptFile(file, projectRoot, compilerOptions);
+        results.push(parsed);
+      }
     } catch {
       // Skip unparseable files
     }
@@ -197,6 +205,8 @@ function buildGraph(
 
   // Parse schema
   const schema = { models: [] as any[], enums: [] as any[] };
+
+  // Try Prisma first
   const prismaPath = resolve(projectRoot, 'prisma/schema.prisma');
   if (existsSync(prismaPath)) {
     try {
@@ -205,6 +215,24 @@ function buildGraph(
       schema.enums = parsed.enums;
     } catch {
       // Schema parsing is optional
+    }
+  }
+
+  // Try Drizzle if no Prisma models found
+  if (schema.models.length === 0) {
+    const drizzleDirs = ['src/db', 'src/schema', 'db', 'drizzle', 'src/drizzle'];
+    for (const dir of drizzleDirs) {
+      const fullDir = resolve(projectRoot, dir);
+      if (existsSync(fullDir)) {
+        try {
+          const drizzle = parseDrizzleSchema(fullDir);
+          schema.models = drizzle.models;
+          schema.enums = drizzle.enums;
+          if (schema.models.length > 0) break;
+        } catch {
+          // Drizzle parsing is optional
+        }
+      }
     }
   }
 
@@ -225,6 +253,12 @@ function filePathToRoute(relativePath: string, framework: Framework): string {
     route = route
       .replace(/^(src\/)?pages/, '')
       .replace(/\.(tsx?|jsx?)$/, '')
+      .replace(/\/index$/, '');
+  } else if (framework === 'nuxt') {
+    // pages/path.vue → /path
+    route = route
+      .replace(/^(src\/)?pages/, '')
+      .replace(/\.vue$/, '')
       .replace(/\/index$/, '');
   }
 

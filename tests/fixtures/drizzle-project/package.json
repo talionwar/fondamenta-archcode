@@ -1,0 +1,7 @@
+{
+  "name": "drizzle-test",
+  "version": "1.0.0",
+  "dependencies": {
+    "drizzle-orm": "^0.30.0"
+  }
+}

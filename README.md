@@ -190,6 +190,34 @@ fondamenta ai-context --copilot   # Generate .github/copilot-instructions.md
 fondamenta ai-context --all       # All of the above
 ```
 
+## Automation
+
+### Cron (recommended for servers)
+
+```bash
+# Regenerate every 6 hours
+30 */6 * * * cd /path/to/project && fondamenta analyze > /dev/null 2>&1
+```
+
+### Git pre-commit hook
+
+```bash
+# .git/hooks/pre-commit
+fondamenta analyze
+git add .planning/
+```
+
+### GitHub Action
+
+```yaml
+- name: Update architecture docs
+  run: npx fondamenta analyze
+- name: Commit changes
+  run: |
+    git add .planning/
+    git diff --staged --quiet || git commit -m "docs: update fondamenta analysis"
+```
+
 ## Roadmap
 
 - [x] CLI `analyze` command

@@ -688,10 +688,26 @@ async function runGeneration(
 }
 
 async function loadConfig(
-  _projectRoot: string,
+  projectRoot: string,
   opts: Record<string, unknown>,
 ): Promise<FondamentaConfig> {
-  const config = { ...DEFAULT_CONFIG };
+  let config: FondamentaConfig = { ...DEFAULT_CONFIG };
+
+  // Load fondamenta.config.ts if present
+  const configPath = resolve(projectRoot, 'fondamenta.config.ts');
+  if (existsSync(configPath)) {
+    try {
+      const raw = await readFile(configPath, 'utf-8');
+      // Extract license key from config file via regex (avoids ts execution)
+      const licenseMatch = raw.match(/license:\s*['"](FA-PRO-[^'"]+)['"]/);
+      if (licenseMatch) {
+        if (!config.agents) config.agents = {} as any;
+        (config.agents as any).license = licenseMatch[1];
+      }
+    } catch {
+      // ignore config read errors
+    }
+  }
 
   if (opts.output) config.output = opts.output as string;
   if (opts.framework) config.framework = opts.framework as any;

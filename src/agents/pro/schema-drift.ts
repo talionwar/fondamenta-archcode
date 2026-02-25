@@ -37,11 +37,43 @@ export const schemaDriftAgent: Agent = {
       }
     }
 
+    // Expand usedModels via transitive relation closure:
+    // If model A is used and has a relation to model B, B is also "in use"
+    // (e.g. prisma.contentQuiz.findMany({ include: { questions: true } })
+    //  uses ContentQuestion even though prisma.contentQuestion is never called directly)
+    const relationMap = new Map<string, Set<string>>();
+    for (const model of graph.schema.models) {
+      const targets = new Set<string>();
+      for (const rel of model.relations) {
+        targets.add(rel.target);
+      }
+      relationMap.set(model.name, targets);
+    }
+
+    // Normalise to PascalCase for lookup
+    const toPascal = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+    const expandedUsedModels = new Set<string>(usedModels);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const [modelName, targets] of relationMap) {
+        const lc = modelName.charAt(0).toLowerCase() + modelName.slice(1);
+        if (expandedUsedModels.has(modelName) || expandedUsedModels.has(lc)) {
+          for (const target of targets) {
+            if (!expandedUsedModels.has(target) && !expandedUsedModels.has(target.charAt(0).toLowerCase() + target.slice(1))) {
+              expandedUsedModels.add(target);
+              changed = true;
+            }
+          }
+        }
+      }
+    }
+
     // 1. Models used in code but not in schema
     for (const model of usedModels) {
       // Prisma uses lowercase model names in client (e.g., prisma.user)
       // Schema has PascalCase (e.g., User)
-      const pascalCase = model.charAt(0).toUpperCase() + model.slice(1);
+      const pascalCase = toPascal(model);
       if (!schemaModelNames.has(model) && !schemaModelNames.has(pascalCase)) {
         findings.push({
           agentId: 'schema-drift',
@@ -53,10 +85,10 @@ export const schemaDriftAgent: Agent = {
       }
     }
 
-    // 2. Schema models never referenced in code
+    // 2. Schema models never referenced in code (direct OR via relations)
     for (const model of graph.schema.models) {
       const lowerName = model.name.charAt(0).toLowerCase() + model.name.slice(1);
-      if (!usedModels.has(model.name) && !usedModels.has(lowerName)) {
+      if (!expandedUsedModels.has(model.name) && !expandedUsedModels.has(lowerName)) {
         // Skip common framework models
         if (['Account', 'Session', 'VerificationToken'].includes(model.name)) continue;
 
@@ -64,7 +96,7 @@ export const schemaDriftAgent: Agent = {
           agentId: 'schema-drift',
           severity: 'info',
           title: 'Unused schema model',
-          message: `Schema model \`${model.name}\` is never referenced in any API route or page data fetching`,
+          message: `Schema model \`${model.name}\` is never referenced in any API route, page data fetching, or schema relation from a used model`,
           suggestion: 'Remove the model if no longer needed, or add code that uses it',
         });
       }

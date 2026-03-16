@@ -93,18 +93,16 @@ export function generateAgentsReport(summary: AgentsRunSummary, agents: Agent[])
   for (const result of summary.results) {
     const agent = agents.find((a) => a.id === result.agentId);
     const name = agent?.name ?? result.agentId;
-    const tier = agent?.tier ?? 'free';
-
     if (result.skipped) {
-      lines.push(`### ${name} \`${tier}\` — Skipped`);
+      lines.push(`### ${name} — Skipped`);
       lines.push('');
-      lines.push(`> ${result.skipReason ?? 'PRO license required'}`);
+      lines.push(`> ${result.skipReason ?? 'excluded'}`);
       lines.push('');
       continue;
     }
 
     const count = result.findings.length;
-    lines.push(`### ${name} \`${tier}\` — ${count} finding${count !== 1 ? 's' : ''} (${result.durationMs}ms)`);
+    lines.push(`### ${name} — ${count} finding${count !== 1 ? 's' : ''} (${result.durationMs}ms)`);
     lines.push('');
 
     if (count === 0) {

@@ -2,6 +2,18 @@
 
 All notable changes to Fondamenta ArchCode are documented here.
 
+## [0.6.0] - 2026-03-16
+
+### Changed
+- **All 8 agents are now free** — removed Open Core licensing, all agents available without license key
+- Removed `license.ts` (HMAC validation), `--free` CLI flag, license config field, tier badges
+- Version bump to 0.6.0
+
+### Removed
+- PRO/free tier distinction — all agents are now tier `free`
+- License validation system (HMAC-based)
+- `validateLicense()` and `generateLicenseKey()` exports
+
 ## [0.4.0] - 2026-03-12
 
 ### Added

@@ -205,7 +205,6 @@ export interface FondamentaConfig {
   };
   agents?: {
     enabled?: boolean;
-    license?: string;
     exclude?: string[];
     thresholds?: {
       maxLineCount?: number;

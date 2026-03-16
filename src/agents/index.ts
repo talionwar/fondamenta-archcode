@@ -1,13 +1,9 @@
-import type { Agent, AgentResult, AgentsRunSummary, AgentsConfig } from './types.js';
+import type { Agent, AgentResult, AgentsRunSummary } from './types.js';
 import type { ProjectGraph, FondamentaConfig } from '../types/index.js';
-import { validateLicense } from './license.js';
 
-// Free agents
 import { deadCodeAgent } from './free/dead-code.js';
 import { circularDepsAgent } from './free/circular-deps.js';
 import { architectureGuardAgent } from './free/architecture-guard.js';
-
-// PRO agents
 import { securityScannerAgent } from './pro/security-scanner.js';
 import { schemaDriftAgent } from './pro/schema-drift.js';
 import { performanceSentinelAgent } from './pro/performance-sentinel.js';
@@ -17,11 +13,9 @@ import { impactAnalyzerAgent } from './pro/impact-analyzer.js';
 // --- Registry ---
 
 export const ALL_AGENTS: Agent[] = [
-  // Free
   deadCodeAgent,
   circularDepsAgent,
   architectureGuardAgent,
-  // PRO
   securityScannerAgent,
   schemaDriftAgent,
   performanceSentinelAgent,
@@ -40,7 +34,6 @@ export function listAgents(): Agent[] {
 // --- Runner ---
 
 export interface RunAgentsOptions {
-  freeOnly?: boolean;
   agentIds?: string[];
 }
 
@@ -50,7 +43,6 @@ export function runAgents(
   options: RunAgentsOptions = {},
 ): AgentsRunSummary {
   const start = Date.now();
-  const license = validateLicense(config.agents?.license);
   const results: AgentResult[] = [];
 
   let agents = ALL_AGENTS;
@@ -58,11 +50,6 @@ export function runAgents(
   // Filter by specific agent IDs
   if (options.agentIds && options.agentIds.length > 0) {
     agents = agents.filter((a) => options.agentIds!.includes(a.id));
-  }
-
-  // Filter by free only
-  if (options.freeOnly) {
-    agents = agents.filter((a) => a.tier === 'free');
   }
 
   // Filter by config exclude
@@ -78,19 +65,6 @@ export function runAgents(
         durationMs: 0,
         skipped: true,
         skipReason: 'excluded in config',
-      });
-      continue;
-    }
-
-    // Skip PRO agents without valid license
-    if (agent.tier === 'pro' && !license.valid) {
-      results.push({
-        agentId: agent.id,
-        tier: agent.tier,
-        findings: [],
-        durationMs: 0,
-        skipped: true,
-        skipReason: 'PRO license required',
       });
       continue;
     }
@@ -139,6 +113,5 @@ export function runAgents(
 }
 
 // Re-exports
-export type { Agent, AgentFinding, AgentResult, AgentsRunSummary, AgentsConfig, LicenseInfo } from './types.js';
-export { validateLicense, generateLicenseKey } from './license.js';
+export type { Agent, AgentFinding, AgentResult, AgentsRunSummary } from './types.js';
 export { printAgentResult, printFindings, printSummary, generateAgentsReport } from './reporter.js';

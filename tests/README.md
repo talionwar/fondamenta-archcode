@@ -36,12 +36,11 @@ tests/
 │       ├── dead-code.test.ts               # Dead code detector tests
 │       ├── circular-deps.test.ts           # Circular deps detector tests
 │       ├── architecture-guard.test.ts      # Architecture validation tests
-│       ├── license.test.ts                 # License validation tests
-│       ├── security-scanner.test.ts        # Security scanning tests (PRO)
-│       ├── schema-drift.test.ts            # Schema drift detection tests (PRO)
-│       ├── performance-sentinel.test.ts    # Performance analysis tests (PRO)
-│       ├── convention-enforcer.test.ts     # Code convention tests (PRO)
-│       └── impact-analyzer.test.ts         # Impact analysis tests (PRO)
+│       ├── security-scanner.test.ts        # Security scanning tests
+│       ├── schema-drift.test.ts            # Schema drift detection tests
+│       ├── performance-sentinel.test.ts    # Performance analysis tests
+│       ├── convention-enforcer.test.ts     # Code convention tests
+│       └── impact-analyzer.test.ts         # Impact analysis tests
 └── integration/
     └── full-analysis.test.ts               # End-to-end analysis tests
 ```
@@ -50,7 +49,6 @@ tests/
 
 ### Unit Tests (8 agents)
 
-#### Free Tier
 - **dead-code.test.ts** — Dead Code Detector
   - Flags orphan components with empty usedBy
   - Skips Next.js implicit files (layout, loading, error, etc.)
@@ -71,14 +69,6 @@ tests/
   - Respects custom maxLineCount threshold
   - Validates auth requirements
 
-- **license.test.ts** — License Validation
-  - Returns free tier without key
-  - Validates generated HMAC keys
-  - Rejects invalid formats
-  - Handles lifetime and expiring licenses
-  - Detects tampered keys
-
-#### Pro Tier
 - **security-scanner.test.ts** — Security Scanner
   - Flags unauthenticated DB access
   - Detects shell execution imports

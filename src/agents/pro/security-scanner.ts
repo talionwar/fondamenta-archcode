@@ -14,7 +14,7 @@ export const securityScannerAgent: Agent = {
   id: 'security-scanner',
   name: 'Security Scanner',
   description: 'Detects routes without auth that access DB, env vars leaked to client, and insecure patterns',
-  tier: 'pro',
+  tier: 'free',
 
   run(graph: ProjectGraph, _config: FondamentaConfig): AgentFinding[] {
     const findings: AgentFinding[] = [];

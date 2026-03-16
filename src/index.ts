@@ -14,13 +14,9 @@ export {
   runAgents,
   listAgents,
   getAgent,
-  validateLicense,
-  generateLicenseKey,
   generateAgentsReport,
   type Agent,
   type AgentFinding,
   type AgentResult,
   type AgentsRunSummary,
-  type AgentsConfig,
-  type LicenseInfo,
 } from './agents/index.js';

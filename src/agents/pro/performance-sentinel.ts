@@ -5,7 +5,7 @@ export const performanceSentinelAgent: Agent = {
   id: 'performance-sentinel',
   name: 'Performance Sentinel',
   description: 'Detects heavy pages, unnecessary client components, and API call waterfalls',
-  tier: 'pro',
+  tier: 'free',
 
   run(graph: ProjectGraph, config: FondamentaConfig): AgentFinding[] {
     const maxPageImports = config.agents?.thresholds?.maxPageImports ?? 20;

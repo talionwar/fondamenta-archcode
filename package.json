@@ -1,6 +1,6 @@
 {
   "name": "fondamenta-archcode",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Zero-dependency codebase intelligence for AI agents. Static analysis → structured Markdown.",
   "type": "module",
   "bin": {

@@ -5,7 +5,7 @@ export const schemaDriftAgent: Agent = {
   id: 'schema-drift',
   name: 'Schema Drift Detector',
   description: 'Finds models referenced in code but missing from schema, and schema models never used in code',
-  tier: 'pro',
+  tier: 'free',
 
   run(graph: ProjectGraph, _config: FondamentaConfig): AgentFinding[] {
     const findings: AgentFinding[] = [];

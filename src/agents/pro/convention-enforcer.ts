@@ -5,7 +5,7 @@ export const conventionEnforcerAgent: Agent = {
   id: 'convention-enforcer',
   name: 'Convention Enforcer',
   description: 'Checks naming conventions, barrel exports, and consistency of auth patterns',
-  tier: 'pro',
+  tier: 'free',
 
   run(graph: ProjectGraph, _config: FondamentaConfig): AgentFinding[] {
     const findings: AgentFinding[] = [];

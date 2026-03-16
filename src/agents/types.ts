@@ -15,7 +15,7 @@ export interface AgentFinding {
 
 // --- Agent interface ---
 
-export type AgentTier = 'free' | 'pro';
+export type AgentTier = 'free';
 
 export interface Agent {
   id: string;
@@ -47,19 +47,9 @@ export interface AgentsRunSummary {
   totalDurationMs: number;
 }
 
-// --- License ---
-
-export interface LicenseInfo {
-  valid: boolean;
-  tier: 'free' | 'pro';
-  expiresAt?: string;
-  message?: string;
-}
-
 // --- Config extensions ---
 
 export interface AgentsConfig {
   enabled: boolean;
-  license?: string;
   exclude?: string[];
 }

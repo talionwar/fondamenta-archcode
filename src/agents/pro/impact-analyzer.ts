@@ -8,7 +8,7 @@ export const impactAnalyzerAgent: Agent = {
   id: 'impact-analyzer',
   name: 'Impact Analyzer',
   description: 'Identifies high fan-in/fan-out nodes, hub components, and articulation points in the graph',
-  tier: 'pro',
+  tier: 'free',
 
   run(graph: ProjectGraph, _config: FondamentaConfig): AgentFinding[] {
     const findings: AgentFinding[] = [];

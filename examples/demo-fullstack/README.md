@@ -72,11 +72,11 @@ Key findings:
 | 5 | Agent: dead-code | `components/OrphanCard.tsx`, `lib/unused-helper.ts` | Orphan component + orphan libs |
 | 6 | Agent: circular-deps | `circular/module-a.ts → b → c → a` | 3-file import cycle |
 | 7 | Agent: architecture-guard | `app/dashboard/page.tsx` (19 imports) | God component warning |
-| 8 | Agent: security-scanner | `app/api/orders/route.ts` (no auth) | Unprotected mutation (PRO) |
-| 9 | Agent: schema-drift | `lib/payments.ts` (uses `Payment` model) | Model not in schema (PRO) |
-| 10 | Agent: performance-sentinel | `app/dashboard/page.tsx` (19 imports) | Heavy page (PRO) |
-| 11 | Agent: convention-enforcer | `components/DashboardStats.tsx` (PascalCase) | Naming check (PRO) |
-| 12 | Agent: impact-analyzer | `components/ui/Button.tsx` (high fan-in) | Hub component (PRO) |
+| 8 | Agent: security-scanner | `app/api/orders/route.ts` (no auth) | Unprotected mutation |
+| 9 | Agent: schema-drift | `lib/payments.ts` (uses `Payment` model) | Model not in schema |
+| 10 | Agent: performance-sentinel | `app/dashboard/page.tsx` (19 imports) | Heavy page |
+| 11 | Agent: convention-enforcer | `components/DashboardStats.tsx` (PascalCase) | Naming check |
+| 12 | Agent: impact-analyzer | `components/ui/Button.tsx` (high fan-in) | Hub component |
 | 13 | Watch mode | Run: `fondamenta watch` | Auto-regenerate on file changes |
 | 14 | Diff mode | `.planning/.fondamenta-state.json` | `fondamenta diff` shows changes |
 | 15 | AI context | `CLAUDE.md` (pre-generated) | AI-readable project summary |

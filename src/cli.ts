@@ -28,7 +28,7 @@ import {
   generateAgentsReport,
 } from './agents/index.js';
 
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 
 const program = new Command();
 
@@ -516,7 +516,6 @@ program
   .description('Run code health agents on the project graph')
   .argument('[path]', 'Project root directory', '.')
   .option('-o, --output <dir>', 'Output directory', '.planning')
-  .option('--free', 'Run only free-tier agents')
   .option('--agent <id>', 'Run a single agent by ID')
   .option('--ci', 'Exit with code 1 if errors are found')
   .option('--report', 'Generate AGENTS-REPORT.md in output directory')
@@ -538,14 +537,11 @@ program
         console.log(chalk.dim('  Available agents:'));
         console.log('');
         for (const agent of ALL_AGENTS) {
-          const tierBadge = agent.tier === 'free'
-            ? chalk.green(' FREE ')
-            : chalk.yellow(' PRO  ');
-          console.log(`  ${tierBadge} ${chalk.bold(agent.id)}`);
-          console.log(chalk.dim(`         ${agent.description}`));
+          console.log(`  ${chalk.green('●')} ${chalk.bold(agent.id)}`);
+          console.log(chalk.dim(`    ${agent.description}`));
         }
         console.log('');
-        console.log(chalk.dim(`  ${ALL_AGENTS.filter(a => a.tier === 'free').length} free, ${ALL_AGENTS.filter(a => a.tier === 'pro').length} pro`));
+        console.log(chalk.dim(`  ${ALL_AGENTS.length} agents available (all free)`));
         console.log('');
       }
       return;
@@ -572,8 +568,7 @@ program
     const agentStartTime = Date.now();
     const spinnerAgents = jsonMode ? null : ora('  Running agents...').start();
 
-    const agentOptions: { freeOnly?: boolean; agentIds?: string[] } = {};
-    if (opts.free) agentOptions.freeOnly = true;
+    const agentOptions: { agentIds?: string[] } = {};
     if (opts.agent) agentOptions.agentIds = [opts.agent as string];
 
     const summary = runAgents(result.graph, config, agentOptions);
@@ -737,13 +732,7 @@ async function loadConfig(
   const configPath = resolve(projectRoot, 'fondamenta.config.ts');
   if (existsSync(configPath)) {
     try {
-      const raw = await readFile(configPath, 'utf-8');
-      // Extract license key from config file via regex (avoids ts execution)
-      const licenseMatch = raw.match(/license:\s*['"](FA-PRO-[^'"]+)['"]/);
-      if (licenseMatch) {
-        if (!config.agents) config.agents = {} as any;
-        (config.agents as any).license = licenseMatch[1];
-      }
+      await readFile(configPath, 'utf-8');
     } catch {
       // ignore config read errors
     }

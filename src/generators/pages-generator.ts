@@ -1,5 +1,5 @@
-import type { ProjectGraph, PageInfo } from '../types/index.js';
-import { header, section, bullet, bulletList, anchor, tocEntry, type GeneratorContext } from './base.js';
+import type { PageInfo } from '../types/index.js';
+import { header, section, bullet, bulletList, anchor, tocEntry, overrideNote, type GeneratorContext } from './base.js';
 
 export function generatePages(ctx: GeneratorContext): string {
   const { graph } = ctx;
@@ -29,7 +29,7 @@ export function generatePages(ctx: GeneratorContext): string {
     output += `${section(2, `${groupIndex}. ${groupName}`)}\n\n`;
 
     for (const page of groups[groupName]) {
-      output += generatePageEntry(page);
+      output += generatePageEntry(page, ctx);
       output += '\n';
     }
 
@@ -52,7 +52,7 @@ function groupByRoute(pages: PageInfo[]): Record<string, PageInfo[]> {
   return groups;
 }
 
-function generatePageEntry(page: PageInfo): string {
+function generatePageEntry(page: PageInfo, ctx: GeneratorContext): string {
   let output = `${section(3, `\`${page.routePath || '/'}\``)}\n\n`;
 
   output += `${bullet('File', `\`${page.filePath}\``)}\n`;
@@ -93,6 +93,8 @@ function generatePageEntry(page: PageInfo): string {
   if (page.i18nNamespace) {
     output += `${bullet('i18n', `\`${page.i18nNamespace}\``)}\n`;
   }
+
+  output += overrideNote(ctx, page.filePath);
 
   output += '\n';
   return output;

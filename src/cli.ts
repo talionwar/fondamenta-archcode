@@ -18,6 +18,7 @@ import {
 } from './generators/index.js';
 import { generateClaudeMd, generateCursorRules, generateCopilotInstructions } from './generators/ai-context-generator.js';
 import { saveState, computeDiff, loadState } from './utils/state.js';
+import { loadOverrides } from './utils/overrides.js';
 import { DEFAULT_CONFIG, type FondamentaConfig } from './types/index.js';
 import {
   ALL_AGENTS,
@@ -100,10 +101,12 @@ program
     const spinnerGen = ora('  Generating documentation...').start();
 
     const projectName = await getProjectName(projectRoot);
+    const overrides = loadOverrides(projectRoot, config.overrides);
     const ctx = {
       graph: result.graph,
       projectName,
       generatedAt: new Date().toISOString().split('T')[0],
+      ...(Object.keys(overrides).length > 0 && { overrides }),
     };
 
     await mkdir(resolve(outputDir, 'dependencies'), { recursive: true });
@@ -406,10 +409,12 @@ program
     spinnerAnalyze.succeed(`  Analyzed ${chalk.cyan(String(result.totalFiles))} files`);
 
     const projectName = await getProjectName(projectRoot);
+    const aiOverrides = loadOverrides(projectRoot, config.overrides);
     const ctx = {
       graph: result.graph,
       projectName,
       generatedAt: new Date().toISOString().split('T')[0],
+      ...(Object.keys(aiOverrides).length > 0 && { overrides: aiOverrides }),
     };
 
     let generated = 0;
@@ -673,8 +678,8 @@ function getGenerators(
   return [
     { name: 'pages', fn: () => generatePages(ctx), path: 'dependencies/pages-atomic.md', enabled: config.generators.pages },
     { name: 'components', fn: () => generateComponents(ctx), path: 'dependencies/components-atomic.md', enabled: config.generators.components },
-    { name: 'api-routes', fn: () => generateApiRoutes(ctx), path: 'dependencies/api-routes-atomic.md', enabled: config.generators.apiRoutes },
-    { name: 'lib', fn: () => generateLib(ctx), path: 'dependencies/lib-atomic.md', enabled: config.generators.lib },
+    { name: 'api-routes', fn: () => generateApiRoutes(ctx, config), path: 'dependencies/api-routes-atomic.md', enabled: config.generators.apiRoutes },
+    { name: 'lib', fn: () => generateLib(ctx, config), path: 'dependencies/lib-atomic.md', enabled: config.generators.lib },
     { name: 'schema', fn: () => generateSchema(ctx), path: 'dependencies/schema-crossref-atomic.md', enabled: config.generators.schemaXref },
     { name: 'component-graph', fn: () => generateComponentGraph(ctx), path: 'dependencies/component-graph.md', enabled: config.generators.componentGraph },
     { name: 'dependency-map', fn: () => generateDependencyMap(ctx, framework), path: 'DEPENDENCY-MAP.md', enabled: config.generators.dependencyMap },
@@ -689,10 +694,12 @@ async function runGeneration(
   result: import('./analyzers/project-analyzer.js').AnalysisResult,
   runAgentsFlag?: boolean,
 ) {
+  const overrides = loadOverrides(projectRoot, config.overrides);
   const ctx = {
     graph: result.graph,
     projectName,
     generatedAt: new Date().toISOString().split('T')[0],
+    ...(Object.keys(overrides).length > 0 && { overrides }),
   };
 
   const generators = getGenerators(ctx, config, result.framework);

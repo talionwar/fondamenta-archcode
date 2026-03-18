@@ -1,9 +1,11 @@
 import type { ProjectGraph } from '../types/index.js';
+import type { Overrides } from '../utils/overrides.js';
 
 export interface GeneratorContext {
   graph: ProjectGraph;
   projectName: string;
   generatedAt: string;
+  overrides?: Overrides;
 }
 
 export function header(title: string, ctx: GeneratorContext, count: number, description: string): string {
@@ -54,4 +56,16 @@ export function table(headers: string[], rows: string[][]): string {
   const separator = `| ${headers.map(() => '---').join(' | ')} |`;
   const dataRows = rows.map((r) => `| ${r.join(' | ')} |`);
   return [headerRow, separator, ...dataRows].join('\n');
+}
+
+export function overrideNote(ctx: GeneratorContext, filePath: string): string {
+  if (!ctx.overrides) return '';
+  const entry = ctx.overrides[filePath];
+  if (!entry) return '';
+  const desc = entry.description || entry.purpose || entry.notes;
+  const risk = entry.risk;
+  let note = '';
+  if (desc) note += `- **Override:** ${desc}\n`;
+  if (risk) note += `- **Risk:** ${risk}\n`;
+  return note;
 }

@@ -4,6 +4,7 @@ export { detectFramework } from './framework/detector.js';
 export { parsePrismaSchema } from './schema/prisma-parser.js';
 export { parseDrizzleSchema } from './schema/drizzle-parser.js';
 export { saveState, loadState, computeDiff } from './utils/state.js';
+export { loadOverrides, getOverride, getRisk, type Overrides, type OverrideEntry } from './utils/overrides.js';
 export { generateClaudeMd, generateCursorRules, generateCopilotInstructions } from './generators/ai-context-generator.js';
 export * from './generators/index.js';
 export * from './types/index.js';

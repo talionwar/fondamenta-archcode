@@ -1,5 +1,5 @@
-import type { ProjectGraph, ComponentInfo } from '../types/index.js';
-import { header, section, bullet, bulletList, anchor, tocEntry, type GeneratorContext } from './base.js';
+import type { ComponentInfo } from '../types/index.js';
+import { header, section, bullet, bulletList, anchor, tocEntry, overrideNote, type GeneratorContext } from './base.js';
 
 export function generateComponents(ctx: GeneratorContext): string {
   const { graph } = ctx;
@@ -40,7 +40,7 @@ export function generateComponents(ctx: GeneratorContext): string {
   if (hooks.length > 0) {
     output += `${section(2, 'Hooks')}\n\n`;
     for (const hook of hooks) {
-      output += generateComponentEntry(hook);
+      output += generateComponentEntry(hook, ctx);
     }
   }
 
@@ -50,7 +50,7 @@ export function generateComponents(ctx: GeneratorContext): string {
     output += `${section(2, `${groupIndex}. ${name}`)}\n\n`;
 
     for (const comp of groups[name]) {
-      output += generateComponentEntry(comp);
+      output += generateComponentEntry(comp, ctx);
     }
 
     groupIndex++;
@@ -80,7 +80,7 @@ function groupByDirectory(components: ComponentInfo[]): Record<string, Component
   return groups;
 }
 
-function generateComponentEntry(comp: ComponentInfo): string {
+function generateComponentEntry(comp: ComponentInfo, ctx: GeneratorContext): string {
   let output = `${section(3, `\`${comp.name}\``)}\n\n`;
 
   output += `${bullet('File', `\`${comp.filePath}\``)}\n`;
@@ -117,6 +117,8 @@ function generateComponentEntry(comp: ComponentInfo): string {
   if (comp.usedBy.length > 0) {
     output += `${bulletList('Used By', comp.usedBy.map((u) => `\`${u}\``))}\n`;
   }
+
+  output += overrideNote(ctx, comp.filePath);
 
   output += '\n';
   return output;

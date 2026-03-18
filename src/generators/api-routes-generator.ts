@@ -1,14 +1,17 @@
-import type { ProjectGraph, ApiRouteInfo } from '../types/index.js';
-import { header, section, bullet, bulletList, table, anchor, tocEntry, type GeneratorContext } from './base.js';
+import type { ApiRouteInfo, FondamentaConfig } from '../types/index.js';
+import { header, section, bullet, bulletList, table, anchor, tocEntry, overrideNote, type GeneratorContext } from './base.js';
 
-export function generateApiRoutes(ctx: GeneratorContext): string {
+export function generateApiRoutes(ctx: GeneratorContext, config?: FondamentaConfig): string {
   const { graph } = ctx;
   const routes = graph.apiRoutes;
 
   if (routes.length === 0) return '';
 
-  // Group by top-level path
-  const groups = groupByPath(routes);
+  // Group by classification (if configured) or by top-level path
+  const classification = config?.routeClassification;
+  const groups = classification
+    ? groupByClassification(routes, classification.mappings, classification.defaultGroup)
+    : groupByPath(routes);
   const groupNames = Object.keys(groups).sort();
 
   let output = header('API Routes — Atomic Analysis', ctx, routes.length, 'routes');
@@ -22,6 +25,16 @@ export function generateApiRoutes(ctx: GeneratorContext): string {
     tocIndex++;
   }
   output += '\n---\n\n';
+
+  // Classification summary (if configured)
+  if (classification) {
+    output += `${section(2, 'Classification Summary')}\n\n`;
+    output += table(
+      ['Group', 'Routes'],
+      groupNames.map((g) => [g, String(groups[g].length)]),
+    );
+    output += '\n\n';
+  }
 
   // Summary table
   output += `${section(2, 'Summary')}\n\n`;
@@ -40,7 +53,7 @@ export function generateApiRoutes(ctx: GeneratorContext): string {
     output += `${section(2, `${groupIndex}. ${name}`)}\n\n`;
 
     for (const route of groups[name]) {
-      output += generateRouteEntry(route);
+      output += generateRouteEntry(route, ctx);
     }
 
     groupIndex++;
@@ -65,7 +78,37 @@ function groupByPath(routes: ApiRouteInfo[]): Record<string, ApiRouteInfo[]> {
   return groups;
 }
 
-function generateRouteEntry(route: ApiRouteInfo): string {
+function groupByClassification(
+  routes: ApiRouteInfo[],
+  mappings: Record<string, [string, string]>,
+  defaultGroup?: string,
+): Record<string, ApiRouteInfo[]> {
+  const groups: Record<string, ApiRouteInfo[]> = {};
+  // Sort prefixes longest-first for correct matching
+  const prefixes = Object.keys(mappings).sort((a, b) => b.length - a.length);
+
+  for (const route of routes) {
+    const routePath = route.routePath.replace(/^\/api\//, '');
+    let groupLabel = defaultGroup ?? 'Other';
+
+    for (const prefix of prefixes) {
+      if (routePath.startsWith(prefix)) {
+        const [group, subgroup] = mappings[prefix];
+        groupLabel = `${group} — ${subgroup}`;
+        route.group = group;
+        route.subgroup = subgroup;
+        break;
+      }
+    }
+
+    if (!groups[groupLabel]) groups[groupLabel] = [];
+    groups[groupLabel].push(route);
+  }
+
+  return groups;
+}
+
+function generateRouteEntry(route: ApiRouteInfo, ctx: GeneratorContext): string {
   let output = `${section(3, `\`${route.routePath}\``)}\n\n`;
 
   output += `${bullet('File', `\`${route.filePath}\``)}\n`;
@@ -79,6 +122,8 @@ function generateRouteEntry(route: ApiRouteInfo): string {
   if (route.sideEffects.length > 0) {
     output += `${bulletList('Side Effects', route.sideEffects)}\n`;
   }
+
+  output += overrideNote(ctx, route.filePath);
 
   output += '\n';
   return output;

@@ -116,6 +116,8 @@ export interface ApiRouteInfo {
   inputValidation?: string;
   responseShape?: string;
   sideEffects: string[];
+  group?: string;
+  subgroup?: string;
 }
 
 export interface ApiCallInfo {
@@ -133,6 +135,8 @@ export interface LibInfo {
   sideEffects: string[];
   envVars: string[];
   keyLogic?: string;
+  subsystem?: string;
+  purpose?: string;
 }
 
 // --- Schema analysis ---
@@ -141,6 +145,8 @@ export interface SchemaModel {
   name: string;
   fields: SchemaField[];
   relations: SchemaRelation[];
+  indexes?: string[];
+  uniqueConstraints?: string[];
 }
 
 export interface SchemaField {
@@ -153,6 +159,9 @@ export interface SchemaRelation {
   field: string;
   target: string;
   type: 'one-to-one' | 'one-to-many' | 'many-to-many';
+  onDelete?: string;
+  fkFields?: string[];
+  references?: string[];
 }
 
 export interface SchemaEnum {
@@ -215,6 +224,12 @@ export interface FondamentaConfig {
   };
   preserveManual: boolean;
   incremental: boolean;
+  overrides?: string;
+  libClassification?: Record<string, string>;
+  routeClassification?: {
+    mappings: Record<string, [string, string]>;
+    defaultGroup?: string;
+  };
 }
 
 export const DEFAULT_CONFIG: FondamentaConfig = {

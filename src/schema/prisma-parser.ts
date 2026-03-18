@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
 import type { SchemaModel, SchemaField, SchemaRelation, SchemaEnum } from '../types/index.js';
 
-interface PrismaParseResult {
+export interface PrismaParseResult {
   models: SchemaModel[];
   enums: SchemaEnum[];
+  cascadeCount: number;
+  setNullCount: number;
 }
 
 export function parsePrismaSchema(schemaPath: string): PrismaParseResult {
@@ -32,8 +34,24 @@ export function parsePrismaSchema(schemaPath: string): PrismaParseResult {
     const body = modelMatch[2];
     const fields: SchemaField[] = [];
     const relations: SchemaRelation[] = [];
+    const indexes: string[] = [];
+    const uniqueConstraints: string[] = [];
 
-    const lines = body.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('//') && !l.startsWith('@@'));
+    const allLines = body.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('//'));
+
+    // Extract @@index and @@unique before filtering out @@ lines
+    for (const line of allLines) {
+      const indexMatch = line.match(/@@index\(\[([^\]]+)\]/);
+      if (indexMatch) {
+        indexes.push(indexMatch[1].replace(/"/g, '').trim());
+      }
+      const uniqueMatch = line.match(/@@unique\(\[([^\]]+)\]/);
+      if (uniqueMatch) {
+        uniqueConstraints.push(uniqueMatch[1].replace(/"/g, '').trim());
+      }
+    }
+
+    const lines = allLines.filter((l) => !l.startsWith('@@'));
 
     for (const line of lines) {
       const parts = line.split(/\s+/);
@@ -74,11 +92,19 @@ export function parsePrismaSchema(schemaPath: string): PrismaParseResult {
       // Detect relations
       const relationMatch = line.match(/@relation\(([^)]*)\)/);
       if (relationMatch) {
+        const relBody = relationMatch[1];
         const isArray = line.includes('[]');
+        const onDeleteMatch = relBody.match(/onDelete:\s*(\w+)/);
+        const fkFieldsMatch = relBody.match(/fields:\s*\[([^\]]+)\]/);
+        const referencesMatch = relBody.match(/references:\s*\[([^\]]+)\]/);
+
         relations.push({
           field: fieldName,
           target: fieldType,
           type: isArray ? 'one-to-many' : 'one-to-one',
+          onDelete: onDeleteMatch?.[1],
+          fkFields: fkFieldsMatch?.[1].split(',').map((s) => s.trim()),
+          references: referencesMatch?.[1].split(',').map((s) => s.trim()),
         });
       }
 
@@ -99,8 +125,24 @@ export function parsePrismaSchema(schemaPath: string): PrismaParseResult {
       }
     }
 
-    models.push({ name, fields, relations });
+    models.push({
+      name,
+      fields,
+      relations,
+      ...(indexes.length > 0 && { indexes }),
+      ...(uniqueConstraints.length > 0 && { uniqueConstraints }),
+    });
   }
 
-  return { models, enums };
+  // Compute cascade/setNull stats
+  let cascadeCount = 0;
+  let setNullCount = 0;
+  for (const model of models) {
+    for (const rel of model.relations) {
+      if (rel.onDelete === 'Cascade') cascadeCount++;
+      if (rel.onDelete === 'SetNull') setNullCount++;
+    }
+  }
+
+  return { models, enums, cascadeCount, setNullCount };
 }

@@ -1,14 +1,17 @@
-import type { ProjectGraph, LibInfo } from '../types/index.js';
-import { header, section, bullet, bulletList, anchor, tocEntry, type GeneratorContext } from './base.js';
+import type { LibInfo, FondamentaConfig } from '../types/index.js';
+import { header, section, bullet, bulletList, anchor, tocEntry, overrideNote, type GeneratorContext } from './base.js';
 
-export function generateLib(ctx: GeneratorContext): string {
+export function generateLib(ctx: GeneratorContext, config?: FondamentaConfig): string {
   const { graph } = ctx;
   const libs = graph.libs;
 
   if (libs.length === 0) return '';
 
-  // Group by directory
-  const groups = groupByDirectory(libs);
+  // Group by subsystem classification (if configured) or by directory
+  const libClassification = config?.libClassification;
+  const groups = libClassification
+    ? groupByClassification(libs, libClassification)
+    : groupByDirectory(libs);
   const groupNames = Object.keys(groups).sort();
 
   let output = header('Lib / Utils — Atomic Analysis', ctx, libs.length, 'files');
@@ -29,7 +32,7 @@ export function generateLib(ctx: GeneratorContext): string {
     output += `${section(2, `${groupIndex}. ${name}`)}\n\n`;
 
     for (const lib of groups[name]) {
-      output += generateLibEntry(lib);
+      output += generateLibEntry(lib, ctx);
     }
 
     groupIndex++;
@@ -51,11 +54,53 @@ function groupByDirectory(libs: LibInfo[]): Record<string, LibInfo[]> {
   return groups;
 }
 
-function generateLibEntry(lib: LibInfo): string {
+function groupByClassification(
+  libs: LibInfo[],
+  classification: Record<string, string>,
+): Record<string, LibInfo[]> {
+  const groups: Record<string, LibInfo[]> = {};
+  // Sort prefixes longest-first for correct matching
+  const prefixes = Object.keys(classification).sort((a, b) => b.length - a.length);
+
+  for (const lib of libs) {
+    let groupName = 'Other';
+    for (const prefix of prefixes) {
+      if (lib.filePath.startsWith(prefix)) {
+        groupName = classification[prefix];
+        break;
+      }
+    }
+    if (!groups[groupName]) groups[groupName] = [];
+    groups[groupName].push(lib);
+  }
+
+  return groups;
+}
+
+function inferPurpose(lib: LibInfo): string {
+  const fileName = lib.filePath.split('/').pop()?.replace(/\.\w+$/, '') ?? '';
+  if (fileName.includes('service')) return `${fileName.replace(/-service$/, '')} service`;
+  if (fileName.includes('client')) return `${fileName.replace(/-client$/, '')} client`;
+  if (fileName.includes('parser')) return `${fileName.replace(/-parser$/, '')} parser`;
+  if (fileName.includes('handler')) return `${fileName.replace(/-handler$/, '')} handler`;
+  if (fileName.includes('utils')) return `${fileName.replace(/-utils$/, '')} utilities`;
+  if (lib.exports.length > 0) {
+    return `Exports: ${lib.exports.slice(0, 3).map((e) => e.name).join(', ')}`;
+  }
+  return '';
+}
+
+function generateLibEntry(lib: LibInfo, ctx: GeneratorContext): string {
   const name = lib.filePath.split('/').pop()?.replace(/\.\w+$/, '') ?? lib.filePath;
   let output = `${section(3, `\`${name}\``)}\n\n`;
 
   output += `${bullet('File', `\`${lib.filePath}\``)}\n`;
+
+  // Purpose (inferred from filename)
+  const purpose = inferPurpose(lib);
+  if (purpose) {
+    output += `${bullet('Purpose', purpose)}\n`;
+  }
 
   // Exports
   if (lib.exports.length > 0) {
@@ -92,6 +137,8 @@ function generateLibEntry(lib: LibInfo): string {
   if (lib.sideEffects.length > 0) {
     output += `${bulletList('Side Effects', lib.sideEffects)}\n`;
   }
+
+  output += overrideNote(ctx, lib.filePath);
 
   output += '\n';
   return output;

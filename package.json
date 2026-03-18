@@ -1,6 +1,6 @@
 {
   "name": "fondamenta-archcode",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Zero-dependency codebase intelligence for AI agents. Static analysis → structured Markdown.",
   "type": "module",
   "bin": {
@@ -44,7 +44,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/StudyIA-2026/fondamenta-archcode.git"
+    "url": "https://github.com/talionwar/fondamenta-archcode.git"
   },
   "engines": {
     "node": ">=20.0.0"

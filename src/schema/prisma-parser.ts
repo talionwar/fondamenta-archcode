@@ -98,10 +98,12 @@ export function parsePrismaSchema(schemaPath: string): PrismaParseResult {
         const fkFieldsMatch = relBody.match(/fields:\s*\[([^\]]+)\]/);
         const referencesMatch = relBody.match(/references:\s*\[([^\]]+)\]/);
 
+        // Detect M:N: array field without explicit FK fields (implicit many-to-many)
+        const isManyToMany = isArray && !fkFieldsMatch;
         relations.push({
           field: fieldName,
           target: fieldType,
-          type: isArray ? 'one-to-many' : 'one-to-one',
+          type: isManyToMany ? 'many-to-many' : isArray ? 'one-to-many' : 'one-to-one',
           onDelete: onDeleteMatch?.[1],
           fkFields: fkFieldsMatch?.[1].split(',').map((s) => s.trim()),
           references: referencesMatch?.[1].split(',').map((s) => s.trim()),
@@ -116,10 +118,11 @@ export function parsePrismaSchema(schemaPath: string): PrismaParseResult {
       ) {
         if (!relations.some((r) => r.field === fieldName)) {
           const isArray = line.includes('[]');
+          const isManyToMany = isArray && !line.includes('@relation');
           relations.push({
             field: fieldName,
             target: fieldType,
-            type: isArray ? 'one-to-many' : 'one-to-one',
+            type: isManyToMany ? 'many-to-many' : isArray ? 'one-to-many' : 'one-to-one',
           });
         }
       }

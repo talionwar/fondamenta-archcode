@@ -278,12 +278,11 @@ function filePathToRoute(relativePath: string, framework: Framework): string {
 function buildPageInfo(file: ParsedFile, framework: Framework): PageInfo {
   const routePath = filePathToRoute(file.relativePath, framework);
 
-  // Detect auth pattern
+  // Detect auth pattern — use word boundaries to avoid false positives
   let auth = 'None';
-  if (file.rawContent.includes('auth()')) auth = 'auth()';
-  else if (file.rawContent.includes('getServerSession')) auth = 'getServerSession';
-  else if (file.rawContent.includes('useSession')) auth = 'useSession (client)';
-  else if (file.rawContent.includes('redirect')) auth = 'redirect (conditional)';
+  if (/\bauth\(\)/.test(file.rawContent)) auth = 'auth()';
+  else if (/\bgetServerSession\b/.test(file.rawContent)) auth = 'getServerSession';
+  else if (/\buseSession\b/.test(file.rawContent)) auth = 'useSession (client)';
 
   // Extract data fetching
   const dataFetching = file.sideEffects
@@ -360,10 +359,10 @@ function buildApiRouteInfo(file: ParsedFile, framework: Framework): ApiRouteInfo
 
   if (methods.length === 0) methods.push('ALL');
 
-  // Detect auth
+  // Detect auth — use word boundaries to avoid false positives
   let auth = 'None';
-  if (file.rawContent.includes('auth()')) auth = 'auth()';
-  else if (file.rawContent.includes('getServerSession')) auth = 'getServerSession';
+  if (/\bauth\(\)/.test(file.rawContent)) auth = 'auth()';
+  else if (/\bgetServerSession\b/.test(file.rawContent)) auth = 'getServerSession';
 
   // Detect models used
   const models: string[] = [];

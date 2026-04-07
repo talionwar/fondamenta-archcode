@@ -12,7 +12,7 @@ export function generateLib(ctx: GeneratorContext, config?: FondamentaConfig): s
   const groups = libClassification
     ? groupByClassification(libs, libClassification)
     : groupByDirectory(libs);
-  const groupNames = Object.keys(groups).sort();
+  const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   let output = header('Lib / Utils — Atomic Analysis', ctx, libs.length, 'files');
 

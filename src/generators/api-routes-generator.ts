@@ -12,7 +12,7 @@ export function generateApiRoutes(ctx: GeneratorContext, config?: FondamentaConf
   const groups = classification
     ? groupByClassification(routes, classification.mappings, classification.defaultGroup)
     : groupByPath(routes);
-  const groupNames = Object.keys(groups).sort();
+  const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   let output = header('API Routes — Atomic Analysis', ctx, routes.length, 'routes');
 

@@ -9,7 +9,7 @@ export function generatePages(ctx: GeneratorContext): string {
 
   // Group pages by top-level route
   const groups = groupByRoute(pages);
-  const groupNames = Object.keys(groups).sort();
+  const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   let output = header('Pages — Atomic Analysis', ctx, pages.length, 'pages');
 

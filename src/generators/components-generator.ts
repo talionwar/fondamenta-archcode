@@ -13,7 +13,7 @@ export function generateComponents(ctx: GeneratorContext): string {
 
   // Group by directory
   const groups = groupByDirectory(regularComponents);
-  const groupNames = Object.keys(groups).sort();
+  const groupNames = Object.keys(groups).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
   let output = header(
     'Components — Atomic Analysis',

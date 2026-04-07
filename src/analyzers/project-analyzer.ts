@@ -181,7 +181,9 @@ function buildGraph(
             ? 'component'
             : 'lib';
 
-    const lineCount = file.rawContent.split('\n').length;
+    const lineCount = file.rawContent.endsWith('\n')
+      ? file.rawContent.split('\n').length - 1
+      : file.rawContent.split('\n').length;
 
     nodes.set(file.relativePath, {
       id: file.relativePath,

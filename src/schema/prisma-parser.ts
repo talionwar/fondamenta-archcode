@@ -13,19 +13,36 @@ const PRISMA_SCALAR_TYPES = new Set([
 ]);
 
 /**
+ * Strip comments from Prisma schema content to prevent false matches
+ * in extractBlocks (keywords/braces inside comments)
+ */
+function stripComments(content: string): string {
+  return content
+    .replace(/\/\*[\s\S]*?\*\//g, '')  // multi-line /* */
+    .replace(/\/\/.*$/gm, '');          // single-line //
+}
+
+/**
  * Extract brace-balanced blocks for a given keyword (model, enum, etc.)
  * Handles nested braces correctly — unlike [^}]+ regex which fails on @default({})
+ * Skips braces inside double-quoted strings to handle @default("{}") correctly
  */
-function extractBlocks(content: string, keyword: string): { name: string; body: string }[] {
+function extractBlocks(rawContent: string, keyword: string): { name: string; body: string }[] {
+  const content = stripComments(rawContent);
   const blocks: { name: string; body: string }[] = [];
   const headerRegex = new RegExp(`${keyword}\\s+(\\w+)\\s*\\{`, 'g');
   let match;
   while ((match = headerRegex.exec(content)) !== null) {
     let depth = 1;
     let i = match.index + match[0].length;
+    let inString = false;
     while (i < content.length && depth > 0) {
-      if (content[i] === '{') depth++;
-      else if (content[i] === '}') depth--;
+      if (content[i] === '"' && content[i - 1] !== '\\') {
+        inString = !inString;
+      } else if (!inString) {
+        if (content[i] === '{') depth++;
+        else if (content[i] === '}') depth--;
+      }
       i++;
     }
     if (depth === 0) {
@@ -124,11 +141,13 @@ function parseModelBlock(name: string, body: string, enumNames: Set<string>): Sc
     ) {
       if (!relations.some((r) => r.field === fieldName)) {
         const isArray = line.includes('[]');
-        const isManyToMany = isArray && !line.includes('@relation');
+        // Implicit relations without @relation: default to one-to-many for arrays.
+        // Cannot distinguish 1:N from M:N without checking if target model has FK back.
+        // M:N detection only works reliably on explicit @relation (see riga 102 above).
         relations.push({
           field: fieldName,
           target: fieldType,
-          type: isManyToMany ? 'many-to-many' : isArray ? 'one-to-many' : 'one-to-one',
+          type: isArray ? 'one-to-many' : 'one-to-one',
         });
       }
     }

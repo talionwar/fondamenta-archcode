@@ -181,9 +181,11 @@ function buildGraph(
             ? 'component'
             : 'lib';
 
-    const lineCount = file.rawContent.endsWith('\n')
-      ? file.rawContent.split('\n').length - 1
-      : file.rawContent.split('\n').length;
+    const lineCount = file.rawContent.length === 0
+      ? 0
+      : file.rawContent.endsWith('\n')
+        ? file.rawContent.split('\n').length - 1
+        : file.rawContent.split('\n').length;
 
     nodes.set(file.relativePath, {
       id: file.relativePath,
@@ -370,7 +372,8 @@ function buildApiRouteInfo(file: ParsedFile, framework: Framework): ApiRouteInfo
   const models: string[] = [];
   const prismaMatch = file.rawContent.matchAll(/prisma\.(\$?\w+)\./g);
   for (const m of prismaMatch) {
-    models.push(m[1]);
+    // Skip client-level operations ($transaction, $queryRaw) — not model names
+    if (!m[1].startsWith('$')) models.push(m[1]);
   }
 
   return {

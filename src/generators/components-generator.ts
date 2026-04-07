@@ -89,10 +89,11 @@ function generateComponentEntry(comp: ComponentInfo, ctx: GeneratorContext): str
   // State
   if (comp.state.length > 0) {
     const stateLines = comp.state.map((s) => {
-      const val = s.initialValue
-        ? ` = ${s.initialValue.replace(/[\n\r]/g, ' ').replace(/\s+/g, ' ').slice(0, 60)}`
-        : '';
-      return `\`${s.name}\`${val}`;
+      if (!s.initialValue) return `\`${s.name}\``;
+      const cleaned = s.initialValue.replace(/[\n\r]/g, ' ').replace(/\s+/g, ' ');
+      // Skip long values entirely to avoid truncating mid-backtick/brace
+      const val = cleaned.length > 50 ? '(...)' : cleaned;
+      return `\`${s.name}\` = ${val}`;
     });
     output += `${bulletList('Internal State', stateLines)}\n`;
   }

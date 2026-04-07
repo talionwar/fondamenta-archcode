@@ -366,7 +366,7 @@ function buildApiRouteInfo(file: ParsedFile, framework: Framework): ApiRouteInfo
 
   // Detect models used
   const models: string[] = [];
-  const prismaMatch = file.rawContent.matchAll(/prisma\.(\w+)\./g);
+  const prismaMatch = file.rawContent.matchAll(/prisma\.(\$?\w+)\./g);
   for (const m of prismaMatch) {
     models.push(m[1]);
   }

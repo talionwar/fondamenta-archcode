@@ -304,6 +304,10 @@ function extractSideEffects(sourceFile: ts.SourceFile): string[] {
       if (text.match(/prisma\.\w+\.(findMany|findUnique|create|update|delete|upsert|count|aggregate)/)) {
         effects.push(`DB: ${text.split('.').slice(-1)[0]}`);
       }
+      // Detect prisma client-level operations ($transaction, $queryRaw, $executeRaw)
+      if (text.match(/prisma\.\$(transaction|queryRaw|executeRaw|queryRawUnsafe|executeRawUnsafe)/)) {
+        effects.push(`DB: ${text.split('.').slice(-1)[0].replace('$', '')}`);
+      }
     }
 
     ts.forEachChild(node, visit);
